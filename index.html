@@ -543,6 +543,41 @@
             white-space: nowrap;
         }
         .div-accion-btn:hover { filter: brightness(0.95); transform: scale(0.97); }
+
+        /* ══════════════════════════════════════
+           MÓDULO GASTOS
+        ══════════════════════════════════════ */
+        .tab-btn[data-tab="gastos"].active { color: #be123c; }
+        .tab-btn[data-tab="gastos"].active::before { background: #be123c; }
+
+        .gasto-kpi-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 0.75rem 0.85rem;
+            box-shadow: 0 2px 10px rgba(160,128,96,0.1), 0 1px 0 rgba(255,255,255,0.8) inset;
+            position: relative; overflow: hidden;
+        }
+        .gasto-kpi-card::before {
+            content: '';
+            position: absolute; top: 0; left: 0; right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #be123c, #f43f5e);
+        }
+        .gasto-item-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 1px 6px rgba(160,128,96,0.08);
+            transition: border-color 0.15s;
+        }
+        .gasto-item-card:hover { border-color: #fda4af; }
+        .badge-gasto-zelle     { background:#e5f4f7;color:#0e6880;border:1px solid #8dd0df;font-family:'JetBrains Mono',monospace;font-size:0.55rem;font-weight:800;padding:0.15rem 0.5rem;border-radius:99px;display:inline-block; }
+        .badge-gasto-binance   { background:#e8f4f2;color:#1a5f52;border:1px solid #8dccc4;font-family:'JetBrains Mono',monospace;font-size:0.55rem;font-weight:800;padding:0.15rem 0.5rem;border-radius:99px;display:inline-block; }
+        .badge-gasto-efectivo  { background:#e8f4ec;color:#1f6b37;border:1px solid #9ecfb0;font-family:'JetBrains Mono',monospace;font-size:0.55rem;font-weight:800;padding:0.15rem 0.5rem;border-radius:99px;display:inline-block; }
+        .badge-gasto-bancos    { background:#fdf3e0;color:#7a5500;border:1px solid #e0c080;font-family:'JetBrains Mono',monospace;font-size:0.55rem;font-weight:800;padding:0.15rem 0.5rem;border-radius:99px;display:inline-block; }
+        .badge-gasto-efbs      { background:#fce7f3;color:#9d174d;border:1px solid #f9a8d4;font-family:'JetBrains Mono',monospace;font-size:0.55rem;font-weight:800;padding:0.15rem 0.5rem;border-radius:99px;display:inline-block; }
     </style>
 </head>
 <body>
@@ -746,6 +781,27 @@
                         </div>
                         <div class="text-right min-w-[88px]">
                             <span id="bal-efectivo-bs" class="balance-equivalente block text-right">— Bs.</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Efectivo Bs en Mano -->
+                <div class="balance-cuenta-card p-3 mb-2.5" style="border-color:rgba(190,18,60,0.3);">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="balance-seccion-label" style="color:#be123c;">
+                            <i class="fa-solid fa-money-bills mr-1"></i> Efectivo Bs. (en mano)
+                        </span>
+                        <span style="font-size:0.58rem; color:var(--muted);">Billetes Bs.</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <div class="relative flex-1">
+                            <span class="absolute left-2.5 top-1/2 -translate-y-1/2 font-black text-sm" style="color:#be123c;">Bs</span>
+                            <input type="number" step="0.01" id="bal-efectivo-bs-mano" placeholder="0.00" min="0"
+                                class="balance-input w-full pl-9 pr-3 py-2.5 text-base font-black"
+                                oninput="recalcularBalance()">
+                        </div>
+                        <div class="text-right min-w-[88px]">
+                            <span id="bal-efectivo-bs-mano-usd" class="balance-equivalente block text-right">— $</span>
                         </div>
                     </div>
                 </div>
@@ -1310,6 +1366,151 @@
         </div>
     </div>
 
+    <!-- ══════════════════════════════════════════
+         TAB 7: GASTOS
+    ══════════════════════════════════════════ -->
+    <div id="tab-gastos" class="tab-panel">
+        <div class="tab-header">
+            <span class="tab-header-text" style="color:#be123c;">
+                <i class="fa-solid fa-money-bill-transfer mr-1.5"></i>Registro de Gastos
+            </span>
+        </div>
+        <div class="px-3 pt-3 space-y-3">
+
+            <section class="card p-4" style="border-left:3.5px solid #be123c;">
+                <div class="flex justify-between items-center mb-3">
+                    <h2 class="sec-label" style="color:#be123c;">
+                        <i class="fa-solid fa-money-bill-transfer mr-2" style="color:#f43f5e;"></i> Control de Gastos
+                    </h2>
+                    <button onclick="gastoToggleForm()" class="btn-ghost px-3 py-1.5" style="font-size:0.65rem;border-color:#fda4af;color:#be123c;">
+                        <i class="fa-solid fa-plus mr-1" style="color:#f43f5e;"></i> Registrar Gasto
+                    </button>
+                </div>
+
+                <!-- KPIs de periodos -->
+                <div class="grid grid-cols-2 gap-2 mb-3">
+                    <div class="gasto-kpi-card">
+                        <span style="display:block;font-size:0.5rem;font-weight:900;text-transform:uppercase;letter-spacing:0.08em;color:#be123c;margin-bottom:0.2rem;">
+                            <i class="fa-solid fa-sun mr-0.5"></i> Hoy
+                        </span>
+                        <span id="gasto-kpi-dia" style="font-size:1.05rem;font-weight:900;color:var(--text);font-family:'JetBrains Mono',monospace;">$0,00</span>
+                    </div>
+                    <div class="gasto-kpi-card">
+                        <span style="display:block;font-size:0.5rem;font-weight:900;text-transform:uppercase;letter-spacing:0.08em;color:#be123c;margin-bottom:0.2rem;">
+                            <i class="fa-solid fa-calendar-week mr-0.5"></i> Últimos 7 días
+                        </span>
+                        <span id="gasto-kpi-semana" style="font-size:1.05rem;font-weight:900;color:var(--text);font-family:'JetBrains Mono',monospace;">$0,00</span>
+                    </div>
+                    <div class="gasto-kpi-card">
+                        <span style="display:block;font-size:0.5rem;font-weight:900;text-transform:uppercase;letter-spacing:0.08em;color:#be123c;margin-bottom:0.2rem;">
+                            <i class="fa-solid fa-calendar-days mr-0.5"></i> Este Mes
+                        </span>
+                        <span id="gasto-kpi-mes" style="font-size:1.05rem;font-weight:900;color:var(--text);font-family:'JetBrains Mono',monospace;">$0,00</span>
+                    </div>
+                    <div class="gasto-kpi-card">
+                        <span style="display:block;font-size:0.5rem;font-weight:900;text-transform:uppercase;letter-spacing:0.08em;color:#be123c;margin-bottom:0.2rem;">
+                            <i class="fa-solid fa-calendar mr-0.5"></i> Este Año
+                        </span>
+                        <span id="gasto-kpi-anio" style="font-size:1.05rem;font-weight:900;color:var(--text);font-family:'JetBrains Mono',monospace;">$0,00</span>
+                    </div>
+                </div>
+
+                <!-- Formulario colapsable -->
+                <div id="gasto-form" class="hidden form-collapse p-3.5 mb-4 space-y-3">
+                    <h3 style="font-size:0.7rem;font-weight:800;color:#be123c;text-transform:uppercase;letter-spacing:0.08em;">
+                        <i class="fa-solid fa-receipt mr-1"></i> Nuevo Gasto
+                    </h3>
+
+                    <!-- Concepto + Fecha -->
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="block mb-0.5" style="font-size:0.6rem;font-weight:700;color:var(--text3);">Concepto / Descripción</label>
+                            <input type="text" id="gasto-concepto" placeholder="Ej. Comida, Gasolina..."
+                                class="inp w-full text-xs p-2">
+                        </div>
+                        <div>
+                            <label class="block mb-0.5" style="font-size:0.6rem;font-weight:700;color:var(--text3);">Fecha del gasto</label>
+                            <input type="date" id="gasto-fecha" class="inp w-full text-xs p-2">
+                        </div>
+                    </div>
+
+                    <!-- Campos de conversión bidireccional -->
+                    <div>
+                        <label class="block mb-1" style="font-size:0.6rem;font-weight:800;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em;">Monto (conversión en tiempo real)</label>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="block mb-0.5" style="font-size:0.58rem;font-weight:700;color:#be123c;">Bolívares (Bs.)</label>
+                                <div class="relative">
+                                    <span class="absolute left-2.5 top-1/2 -translate-y-1/2 font-black text-xs" style="color:#be123c;">Bs</span>
+                                    <input type="number" step="0.01" id="gasto-monto-bs" placeholder="0,00"
+                                        class="inp w-full pl-8 pr-2 text-xs p-2 font-black"
+                                        oninput="gastoConvertirDesdeBs()">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block mb-0.5" style="font-size:0.58rem;font-weight:700;color:var(--green-m);">Dólares ($)</label>
+                                <div class="relative">
+                                    <span class="absolute left-2.5 top-1/2 -translate-y-1/2 font-black text-xs" style="color:var(--green-m);">$</span>
+                                    <input type="number" step="0.01" id="gasto-monto-usd" placeholder="0.00"
+                                        class="inp w-full pl-6 pr-2 text-xs p-2 font-black"
+                                        oninput="gastoConvertirDesdeUsd()">
+                                </div>
+                            </div>
+                        </div>
+                        <div style="font-size:0.58rem;color:var(--muted);margin-top:0.3rem;text-align:right;">
+                            <i class="fa-solid fa-arrow-right-arrow-left mr-0.5" style="color:var(--gold);"></i>
+                            Tasa activa: <span id="gasto-tasa-ref" style="font-weight:800;color:var(--gold);">—</span> Bs/$
+                        </div>
+                    </div>
+
+                    <!-- Método de pago -->
+                    <div>
+                        <label class="block mb-1" style="font-size:0.6rem;font-weight:700;color:var(--text3);">Método de Pago</label>
+                        <div class="grid grid-cols-2 gap-2">
+                            <label class="radio-opt">
+                                <input type="radio" name="gasto-metodo" value="zelle" checked>
+                                <i class="fa-solid fa-credit-card mr-1" style="color:#0e6880;"></i> Zelle $
+                            </label>
+                            <label class="radio-opt">
+                                <input type="radio" name="gasto-metodo" value="binance">
+                                <i class="fa-solid fa-circle-dollar-to-slot mr-1" style="color:#1a5f52;"></i> Binance/USDT $
+                            </label>
+                            <label class="radio-opt">
+                                <input type="radio" name="gasto-metodo" value="efectivo">
+                                <i class="fa-solid fa-money-bill-1 mr-1" style="color:#1f6b37;"></i> Efectivo Físico $
+                            </label>
+                            <label class="radio-opt">
+                                <input type="radio" name="gasto-metodo" value="bancos">
+                                <i class="fa-solid fa-building-columns mr-1" style="color:var(--gold);"></i> Cuentas Bcas. Bs.
+                            </label>
+                            <label class="radio-opt" style="grid-column:span 2;">
+                                <input type="radio" name="gasto-metodo" value="efectivo-bs">
+                                <i class="fa-solid fa-money-bills mr-1" style="color:#be123c;"></i> Bs. en Efectivo
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-end gap-2 pt-1">
+                        <button onclick="gastoToggleForm()" class="btn-ghost px-3 py-1.5" style="font-size:0.65rem;">Cancelar</button>
+                        <button onclick="gastoGuardar()" class="btn-gold px-4 py-1.5"
+                            style="font-size:0.65rem;background:linear-gradient(135deg,#be123c,#e11d48);box-shadow:0 2px 8px rgba(190,18,60,0.35);">
+                            <i class="fa-solid fa-floppy-disk mr-1"></i> Guardar Gasto
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Historial -->
+                <div>
+                    <p class="sec-label mb-2" style="color:var(--text2);">
+                        <i class="fa-solid fa-folder-tree mr-1" style="color:#f43f5e;"></i> Historial de Gastos
+                    </p>
+                    <div id="gasto-historial-container" class="space-y-2"></div>
+                </div>
+            </section>
+
+        </div>
+    </div>
+
 </div><!-- /#app-main -->
 
 <!-- ═══════════════ BOTTOM TAB NAV ═══════════════ -->
@@ -1338,6 +1539,10 @@
         <button class="tab-btn" data-tab="divisas" onclick="switchTab('divisas')">
             <span class="tab-icon"><i class="fa-solid fa-handshake"></i></span>
             <span class="tab-label">Divisas</span>
+        </button>
+        <button class="tab-btn" data-tab="gastos" onclick="switchTab('gastos')">
+            <span class="tab-icon"><i class="fa-solid fa-money-bill-transfer"></i></span>
+            <span class="tab-label">Gastos</span>
         </button>
     </div>
 </nav>
@@ -1454,8 +1659,9 @@ let balanceBancos     = JSON.parse(localStorage.getItem('mthori_balance_bancos')
 let comprasDivisas    = JSON.parse(localStorage.getItem('mthori_compras_divisas'))          || [];
 let historicoMensual  = JSON.parse(localStorage.getItem('mthori_historico_mensual_ingresos')) || [];
 let balanceOtros      = JSON.parse(localStorage.getItem('mthori_balance_otros'))            || {
-    zelle: 0, binance: 0, binanceTasa: 0, efectivo: 0
+    zelle: 0, binance: 0, binanceTasa: 0, efectivo: 0, efectivoBs: 0
 };
+let gastos            = JSON.parse(localStorage.getItem('mthori_gastos'))                   || [];
 
 let _modalDeudaId  = null;
 let _modalDeudorId = null;
@@ -2484,6 +2690,8 @@ function calcularTodo() {
     renderIngresos();
     renderDeudores();
     divActualizarKPIs();
+    if (typeof gastoActualizarKPIs === 'function')     gastoActualizarKPIs();
+    if (typeof gastoActualizarTasaRef === 'function')  gastoActualizarTasaRef();
 }
 
 
@@ -2493,10 +2701,11 @@ function calcularTodo() {
 
 function guardarBalanceOtros() {
     balanceOtros = {
-        zelle:       parseFloat(document.getElementById('bal-zelle').value)        || 0,
-        binance:     parseFloat(document.getElementById('bal-binance').value)      || 0,
-        binanceTasa: parseFloat(document.getElementById('bal-binance-tasa').value) || 0,
-        efectivo:    parseFloat(document.getElementById('bal-efectivo').value)     || 0
+        zelle:       parseFloat(document.getElementById('bal-zelle').value)             || 0,
+        binance:     parseFloat(document.getElementById('bal-binance').value)           || 0,
+        binanceTasa: parseFloat(document.getElementById('bal-binance-tasa').value)      || 0,
+        efectivo:    parseFloat(document.getElementById('bal-efectivo').value)          || 0,
+        efectivoBs:  parseFloat(document.getElementById('bal-efectivo-bs-mano').value)  || 0
     };
     localStorage.setItem('mthori_balance_otros', JSON.stringify(balanceOtros));
 }
@@ -2619,29 +2828,38 @@ function recalcularBalance() {
     elEfBs.textContent = tasa > 0 ? fmtComa(efectivoBs) + ' Bs.' : '— Bs.';
     elEfBs.className   = 'balance-equivalente block text-right ' + (tasa > 0 && efectivoUsd > 0 ? 'activo' : '');
 
+    const efectivoBsMano = parseFloat(document.getElementById('bal-efectivo-bs-mano').value) || 0;
+    const efectivoBsManoUsd = tasa > 0 ? efectivoBsMano / tasa : 0;
+    const elEfBsMano = document.getElementById('bal-efectivo-bs-mano-usd');
+    if (elEfBsMano) {
+        elEfBsMano.textContent = tasa > 0 ? '≈ $' + fmtComa(efectivoBsManoUsd) : '— $';
+        elEfBsMano.className   = 'balance-equivalente block text-right ' + (tasa > 0 && efectivoBsMano > 0 ? 'activo' : '');
+    }
+
     let cobrarUsd = 0;
     deudores.forEach(d => { cobrarUsd += (d.montoUsd || 0); });
     const cobrarBs = tasa > 0 ? cobrarUsd * tasa : 0;
     document.getElementById('bal-cobrar-usd').textContent = '$' + fmtComa(cobrarUsd);
     document.getElementById('bal-cobrar-bs').textContent  = fmtComa(cobrarBs) + ' Bs.';
 
-    const granTotalUsd = totalBancosUsd + zelleUsd + binanceUsd + efectivoUsd + cobrarUsd;
+    const granTotalUsd = totalBancosUsd + zelleUsd + binanceUsd + efectivoUsd + efectivoBsManoUsd + cobrarUsd;
     const granTotalBs  = tasa > 0 ? granTotalUsd * tasa : 0;
     document.getElementById('bal-gran-total-usd').textContent = '$' + fmtComa(granTotalUsd);
     document.getElementById('bal-gran-total-bs').textContent  = fmtComa(granTotalBs);
 
     document.getElementById('bal-resumen-bancos').textContent  = '$' + fmtComa(totalBancosUsd);
-    document.getElementById('bal-resumen-activos').textContent = '$' + fmtComa(zelleUsd + binanceUsd + efectivoUsd);
+    document.getElementById('bal-resumen-activos').textContent = '$' + fmtComa(zelleUsd + binanceUsd + efectivoUsd + efectivoBsManoUsd);
     document.getElementById('bal-resumen-cobrar').textContent  = '$' + fmtComa(cobrarUsd);
 
     pulseEl('bal-gran-total-usd');
 }
 
 (function initBalance() {
-    document.getElementById('bal-zelle').value        = balanceOtros.zelle       || '';
-    document.getElementById('bal-binance').value      = balanceOtros.binance     || '';
-    document.getElementById('bal-binance-tasa').value = balanceOtros.binanceTasa || '';
-    document.getElementById('bal-efectivo').value     = balanceOtros.efectivo    || '';
+    document.getElementById('bal-zelle').value             = balanceOtros.zelle        || '';
+    document.getElementById('bal-binance').value           = balanceOtros.binance      || '';
+    document.getElementById('bal-binance-tasa').value      = balanceOtros.binanceTasa  || '';
+    document.getElementById('bal-efectivo').value          = balanceOtros.efectivo     || '';
+    document.getElementById('bal-efectivo-bs-mano').value  = balanceOtros.efectivoBs   || '';
     renderBalanceBancos();
 })();
 
@@ -2972,6 +3190,335 @@ function divToggleCarpeta(id) {
 (function initDivisas() {
     divRenderHistorial();
     divActualizarKPIs();
+})();
+
+
+// ════════════════════════════════════════════════════════════════════════════════
+// ── MÓDULO: GASTOS ───────────────────────────────────────────────────────────
+// ════════════════════════════════════════════════════════════════════════════════
+
+// ── Formulario toggle ──
+function gastoToggleForm() {
+    const form = document.getElementById('gasto-form');
+    form.classList.toggle('hidden');
+    if (!form.classList.contains('hidden')) {
+        const d = new Date();
+        document.getElementById('gasto-fecha').value =
+            d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+        document.getElementById('gasto-monto-bs').value  = '';
+        document.getElementById('gasto-monto-usd').value = '';
+        gastoActualizarTasaRef();
+    }
+}
+
+function gastoActualizarTasaRef() {
+    const tasa = parseFloat(document.getElementById('tasa-bcv').value) || 0;
+    const el = document.getElementById('gasto-tasa-ref');
+    if (el) el.textContent = tasa > 0 ? fmtBs(tasa) : '—';
+}
+
+// ── Conversión bidireccional ──
+function gastoConvertirDesdeBs() {
+    const tasa = parseFloat(document.getElementById('tasa-bcv').value) || 0;
+    const bs   = parseFloat(document.getElementById('gasto-monto-bs').value);
+    if (!isNaN(bs) && tasa > 0) {
+        document.getElementById('gasto-monto-usd').value = (bs / tasa).toFixed(2);
+    } else {
+        document.getElementById('gasto-monto-usd').value = '';
+    }
+}
+
+function gastoConvertirDesdeUsd() {
+    const tasa = parseFloat(document.getElementById('tasa-bcv').value) || 0;
+    const usd  = parseFloat(document.getElementById('gasto-monto-usd').value);
+    if (!isNaN(usd) && tasa > 0) {
+        document.getElementById('gasto-monto-bs').value = (usd * tasa).toFixed(2);
+    } else {
+        document.getElementById('gasto-monto-bs').value = '';
+    }
+}
+
+// ── Badge de método ──
+function gastoBadge(metodo) {
+    const cfg = {
+        zelle:       ['badge-gasto-zelle',    'Zelle $'],
+        binance:     ['badge-gasto-binance',  'Binance/USDT $'],
+        efectivo:    ['badge-gasto-efectivo', 'Efectivo $'],
+        bancos:      ['badge-gasto-bancos',   'Cuentas Bcas. Bs.'],
+        'efectivo-bs':['badge-gasto-efbs',    'Bs. Efectivo']
+    };
+    const [cls, lbl] = cfg[metodo] || ['badge', metodo];
+    return `<span class="${cls}">${lbl}</span>`;
+}
+
+// ── Guardar gasto ──
+function gastoGuardar() {
+    const concepto = document.getElementById('gasto-concepto').value.trim();
+    const fechaVal = document.getElementById('gasto-fecha').value;
+    const montoUsd = parseFloat(document.getElementById('gasto-monto-usd').value);
+    const montoBs  = parseFloat(document.getElementById('gasto-monto-bs').value);
+    const metodo   = document.querySelector('input[name="gasto-metodo"]:checked')?.value || 'zelle';
+    const tasa     = parseFloat(document.getElementById('tasa-bcv').value) || 0;
+
+    if (!concepto)                         { alert('Ingresa un concepto.'); return; }
+    if (!fechaVal)                         { alert('Selecciona una fecha.'); return; }
+    if (isNaN(montoUsd) || montoUsd <= 0)  { alert('Ingresa un monto válido.'); return; }
+    if (tasa <= 0)                         { alert('La tasa BCV es necesaria para registrar el gasto.'); return; }
+
+    const montoUsdFijo = Number(montoUsd.toFixed(2));
+    const montoBsFijo  = isNaN(montoBs) ? Number((montoUsd * tasa).toFixed(2)) : Number(montoBs.toFixed(2));
+
+    // ── Validar fondos y descontar ────────────────────────────────────────────
+    if (metodo === 'zelle') {
+        const saldo = parseFloat(document.getElementById('bal-zelle').value) || 0;
+        if (saldo < montoUsdFijo) { alert('Fondos insuficientes en Zelle ($' + fmtComa(saldo) + ' disponibles).'); return; }
+        document.getElementById('bal-zelle').value = (saldo - montoUsdFijo).toFixed(2);
+
+    } else if (metodo === 'binance') {
+        const saldo = parseFloat(document.getElementById('bal-binance').value) || 0;
+        if (saldo < montoUsdFijo) { alert('Fondos insuficientes en Binance ($' + fmtComa(saldo) + ' disponibles).'); return; }
+        document.getElementById('bal-binance').value = (saldo - montoUsdFijo).toFixed(2);
+
+    } else if (metodo === 'efectivo') {
+        const saldo = parseFloat(document.getElementById('bal-efectivo').value) || 0;
+        if (saldo < montoUsdFijo) { alert('Fondos insuficientes en Efectivo $ ($' + fmtComa(saldo) + ' disponibles).'); return; }
+        document.getElementById('bal-efectivo').value = (saldo - montoUsdFijo).toFixed(2);
+
+    } else if (metodo === 'bancos') {
+        // Descontar del primer banco con saldo suficiente (o del total sumado)
+        const totalBancoBs = balanceBancos.reduce((s, b) => s + (b.saldoBs || 0), 0);
+        if (totalBancoBs < montoBsFijo) { alert('Fondos insuficientes en cuentas bancarias (' + fmtBs(totalBancoBs) + ' Bs. disponibles).'); return; }
+        // Descontar de los bancos en orden
+        let restante = montoBsFijo;
+        for (const banco of balanceBancos) {
+            if (restante <= 0) break;
+            const saldoBanco = banco.saldoBs || 0;
+            const descuento  = Math.min(saldoBanco, restante);
+            banco.saldoBs    = saldoBanco - descuento;
+            restante        -= descuento;
+            const el = document.getElementById('bal-banco-input-' + banco.id);
+            if (el) el.value = banco.saldoBs.toFixed(2);
+        }
+        localStorage.setItem('mthori_balance_bancos', JSON.stringify(balanceBancos));
+
+    } else if (metodo === 'efectivo-bs') {
+        const saldo = parseFloat(document.getElementById('bal-efectivo-bs-mano').value) || 0;
+        if (saldo < montoBsFijo) { alert('Fondos insuficientes en Efectivo Bs. (' + fmtBs(saldo) + ' Bs. disponibles).'); return; }
+        document.getElementById('bal-efectivo-bs-mano').value = (saldo - montoBsFijo).toFixed(2);
+    }
+
+    // ── Registrar ─────────────────────────────────────────────────────────────
+    const [yy, mm, dd] = fechaVal.split('-').map(Number);
+    const fechaObj = new Date(yy, mm - 1, dd, 12, 0, 0);
+    const reg = {
+        id:        Date.now(),
+        timestamp: fechaObj.getTime(),
+        fechaISO:  fechaVal,
+        concepto,
+        metodo,
+        montoUsd:  montoUsdFijo,
+        montoBs:   montoBsFijo,
+        tasaBcv:   tasa
+    };
+
+    gastos.unshift(reg);
+    localStorage.setItem('mthori_gastos', JSON.stringify(gastos));
+
+    document.getElementById('gasto-concepto').value   = '';
+    document.getElementById('gasto-monto-bs').value   = '';
+    document.getElementById('gasto-monto-usd').value  = '';
+    gastoToggleForm();
+    recalcularBalance();
+    gastoRenderHistorial();
+    gastoActualizarKPIs();
+    mostrarToast('✓ Gasto "' + concepto + '" de $' + fmtComa(montoUsdFijo) + ' registrado');
+}
+
+// ── Eliminar gasto (devuelve fondos) ──
+function gastoEliminar(id) {
+    if (!confirm('¿Borrar este gasto y devolver el dinero al balance?')) return;
+    const gasto = gastos.find(g => g.id === id);
+    if (!gasto) return;
+
+    const tasa = parseFloat(document.getElementById('tasa-bcv').value) || 0;
+
+    if (gasto.metodo === 'zelle') {
+        const el = document.getElementById('bal-zelle');
+        if (el) el.value = ((parseFloat(el.value) || 0) + gasto.montoUsd).toFixed(2);
+
+    } else if (gasto.metodo === 'binance') {
+        const el = document.getElementById('bal-binance');
+        if (el) el.value = ((parseFloat(el.value) || 0) + gasto.montoUsd).toFixed(2);
+
+    } else if (gasto.metodo === 'efectivo') {
+        const el = document.getElementById('bal-efectivo');
+        if (el) el.value = ((parseFloat(el.value) || 0) + gasto.montoUsd).toFixed(2);
+
+    } else if (gasto.metodo === 'bancos') {
+        // Devolver al primer banco de la lista
+        if (balanceBancos.length > 0) {
+            balanceBancos[0].saldoBs = (balanceBancos[0].saldoBs || 0) + gasto.montoBs;
+            localStorage.setItem('mthori_balance_bancos', JSON.stringify(balanceBancos));
+            renderBalanceBancos();
+        }
+
+    } else if (gasto.metodo === 'efectivo-bs') {
+        const el = document.getElementById('bal-efectivo-bs-mano');
+        if (el) el.value = ((parseFloat(el.value) || 0) + gasto.montoBs).toFixed(2);
+    }
+
+    gastos = gastos.filter(g => g.id !== id);
+    localStorage.setItem('mthori_gastos', JSON.stringify(gastos));
+    recalcularBalance();
+    gastoRenderHistorial();
+    gastoActualizarKPIs();
+    mostrarToast('↩ Gasto eliminado — fondos devueltos al balance');
+}
+
+// ── KPIs de periodos ──
+function gastoActualizarKPIs() {
+    const ahora  = new Date();
+    const hoyY   = ahora.getFullYear();
+    const hoyM   = ahora.getMonth();
+    const hoyD   = ahora.getDate();
+
+    let totalDia = 0, totalSemana = 0, totalMes = 0, totalAnio = 0;
+    const hace7  = new Date(hoyY, hoyM, hoyD - 6, 0, 0, 0);
+
+    gastos.forEach(g => {
+        const d = new Date(g.timestamp);
+        const dY = d.getFullYear(), dM = d.getMonth(), dD = d.getDate();
+
+        // Año
+        if (dY === hoyY) totalAnio += (g.montoUsd || 0);
+        // Mes
+        if (dY === hoyY && dM === hoyM) totalMes += (g.montoUsd || 0);
+        // Semana (7 días)
+        const dSolo = new Date(dY, dM, dD, 0, 0, 0);
+        if (dSolo >= hace7) totalSemana += (g.montoUsd || 0);
+        // Hoy
+        if (dY === hoyY && dM === hoyM && dD === hoyD) totalDia += (g.montoUsd || 0);
+    });
+
+    const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = '$' + fmtComa(val); };
+    set('gasto-kpi-dia',    totalDia);
+    set('gasto-kpi-semana', totalSemana);
+    set('gasto-kpi-mes',    totalMes);
+    set('gasto-kpi-anio',   totalAnio);
+}
+
+// ── Toggle carpeta historial ──
+function gastoToggleCarpeta(id) {
+    const el  = document.getElementById(id);
+    const ico = document.getElementById('ico-' + id);
+    if (!el) return;
+    el.classList.toggle('hidden');
+    if (ico) {
+        ico.className = el.classList.contains('hidden')
+            ? 'fa-solid fa-folder text-sm'
+            : 'fa-solid fa-folder-open text-sm';
+        ico.style.color = el.classList.contains('hidden') ? '#f43f5e' : '#be123c';
+    }
+}
+
+// ── Render historial agrupado por mes ──
+function gastoRenderHistorial() {
+    const contenedor = document.getElementById('gasto-historial-container');
+    if (!contenedor) return;
+    contenedor.innerHTML = '';
+
+    if (gastos.length === 0) {
+        contenedor.innerHTML = `
+            <div style="text-align:center;padding:2rem 1rem;border:1.5px dashed #fda4af;border-radius:10px;background:#fff1f2;">
+                <i class="fa-solid fa-receipt" style="font-size:1.5rem;color:#fda4af;display:block;margin-bottom:0.5rem;"></i>
+                <span style="font-size:0.7rem;color:#be123c;font-weight:700;">Sin gastos registrados</span><br>
+                <span style="font-size:0.62rem;color:var(--muted);">Pulsa "Registrar Gasto" para comenzar</span>
+            </div>`;
+        gastoActualizarKPIs();
+        return;
+    }
+
+    // Agrupar por mes/año
+    const grupos = {};
+    gastos.forEach(g => {
+        const d     = new Date(g.timestamp);
+        const key   = d.getFullYear() + '_' + d.getMonth();
+        const label = d.toLocaleDateString('es-VE', { month:'long', year:'numeric' });
+        const lbl   = label.charAt(0).toUpperCase() + label.slice(1);
+        if (!grupos[key]) grupos[key] = { label: lbl, items: [], totalUsd: 0 };
+        grupos[key].items.push(g);
+        grupos[key].totalUsd += (g.montoUsd || 0);
+    });
+
+    Object.keys(grupos).forEach((key, idx) => {
+        const grupo     = grupos[key];
+        const carpetaId = 'gasto-carpeta-' + key + '-' + idx;
+
+        const itemsHtml = grupo.items.map(g => {
+            const fechaObj = new Date(g.timestamp);
+            const fechaStr = fechaObj.toLocaleDateString('es-VE', { weekday:'short', day:'numeric', month:'short' });
+            return `
+            <div class="gasto-item-card">
+                <div class="flex justify-between items-start p-2.5 gap-2">
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center gap-1.5 flex-wrap mb-0.5">
+                            <i class="fa-solid fa-receipt" style="color:#f43f5e;font-size:0.65rem;"></i>
+                            <span style="font-size:0.78rem;font-weight:900;color:var(--text);">${g.concepto}</span>
+                        </div>
+                        <div style="font-size:0.58rem;color:var(--muted);margin-bottom:0.4rem;">
+                            <i class="fa-regular fa-calendar mr-0.5" style="color:#f43f5e;"></i>${fechaStr}
+                        </div>
+                        <div class="flex items-baseline gap-2 flex-wrap">
+                            <span style="font-size:1rem;font-weight:900;color:#be123c;font-family:'JetBrains Mono',monospace;">$${fmtComa(g.montoUsd)}</span>
+                            <span style="font-size:0.6rem;color:var(--muted);">/</span>
+                            <span style="font-size:0.78rem;font-weight:800;color:var(--gold);font-family:'JetBrains Mono',monospace;">${fmtBs(g.montoBs)} Bs.</span>
+                        </div>
+                        <div class="mt-1 flex items-center gap-1.5 flex-wrap">
+                            ${gastoBadge(g.metodo)}
+                            <span style="font-size:0.52rem;color:var(--muted);">Tasa: ${fmtBs(g.tasaBcv)} Bs/$</span>
+                        </div>
+                    </div>
+                    <button onclick="gastoEliminar(${g.id})" title="Eliminar y devolver fondos"
+                        style="padding:0.3rem 0.4rem;background:#fff0f0;border:1px solid #f0b0b0;border-radius:6px;cursor:pointer;color:#cc3333;flex-shrink:0;">
+                        <i class="fa-solid fa-trash" style="font-size:0.65rem;"></i>
+                    </button>
+                </div>
+            </div>`;
+        }).join('');
+
+        const div = document.createElement('div');
+        div.className = 'card overflow-hidden';
+        div.innerHTML = `
+            <div class="folder-header flex justify-between items-center gap-2"
+                 onclick="gastoToggleCarpeta('${carpetaId}')"
+                 style="background:linear-gradient(90deg,#fff1f2,#ffe4e6);border-color:#fda4af;">
+                <span class="sec-label flex items-center gap-2" style="color:#be123c;">
+                    <i id="ico-${carpetaId}" class="fa-solid fa-folder text-sm" style="color:#f43f5e;"></i>
+                    <span>${grupo.label}</span>
+                </span>
+                <div class="flex items-center gap-1.5">
+                    <span style="font-size:0.6rem;background:#fff1f2;color:#be123c;border:1px solid #fda4af;border-radius:99px;padding:0.15rem 0.5rem;font-weight:800;font-family:'JetBrains Mono',monospace;">
+                        ${grupo.items.length} gasto${grupo.items.length > 1 ? 's' : ''}
+                    </span>
+                    <span style="font-size:0.6rem;background:#fff0f0;color:#be123c;border:1px solid #fca5a5;border-radius:99px;padding:0.15rem 0.5rem;font-weight:900;font-family:'JetBrains Mono',monospace;">
+                        -$${fmtComa(grupo.totalUsd)}
+                    </span>
+                </div>
+            </div>
+            <div id="${carpetaId}" class="hidden folder-body p-2 space-y-1.5">
+                ${itemsHtml}
+            </div>`;
+        contenedor.appendChild(div);
+    });
+
+    gastoActualizarKPIs();
+}
+
+// ── Inicializar módulo Gastos ──
+(function initGastos() {
+    gastoActualizarTasaRef();
+    gastoRenderHistorial();
+    gastoActualizarKPIs();
 })();
 </script>
 </body>
