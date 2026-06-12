@@ -1,0 +1,2978 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mthori - Finance Wallet</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=JetBrains+Mono:wght@400;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --cream:    #f5ede0;
+            --cream2:   #ede0cc;
+            --cream3:   #e4d3ba;
+            --warm:     #c9a97a;
+            --gold:     #b8912f;
+            --gold2:    #d4a843;
+            --sand:     #a08060;
+            --green-l:  #4a7c59;
+            --green-m:  #2e6644;
+            --green-d:  #1a3d27;
+            --bg:       #f2e8d8;
+            --bg2:      #ead9c3;
+            --bg3:      #e0ccb0;
+            --card:     #f8f2e8;
+            --card2:    #f0e6d5;
+            --border:   #d4c0a0;
+            --border2:  #c8b090;
+            --text:     #3a2a18;
+            --text2:    #5c4228;
+            --text3:    #7a5c3a;
+            --muted:    #9a7d5c;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            background: var(--bg);
+            background-image:
+                radial-gradient(ellipse at 20% 0%, rgba(201,169,122,0.18) 0%, transparent 60%),
+                radial-gradient(ellipse at 80% 100%, rgba(74,124,89,0.12) 0%, transparent 60%);
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        /* ══════════════════════════════════════
+           NAVBAR
+        ══════════════════════════════════════ */
+        #main-navbar {
+            background: linear-gradient(135deg, #f5ede0 0%, #ead9c3 50%, #e8d5b8 100%);
+            border-bottom: 2px solid var(--gold);
+            position: sticky; top: 0; z-index: 50;
+            box-shadow: 0 2px 20px rgba(176,145,80,0.25);
+        }
+        .nav-logo-m {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.6rem; font-weight: 900;
+            color: var(--gold);
+            line-height: 1;
+            letter-spacing: -0.02em;
+        }
+        .nav-logo-icon {
+            width: 36px; height: 36px;
+            background: linear-gradient(135deg, var(--gold2), var(--gold));
+            border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            color: white; font-size: 0.9rem;
+            box-shadow: 0 2px 8px rgba(176,145,80,0.4);
+        }
+        .nav-date-badge {
+            background: var(--cream);
+            border: 1.5px solid var(--gold2);
+            border-radius: 6px;
+            padding: 0.3rem 0.65rem;
+            font-size: 0.65rem; font-weight: 700;
+            color: var(--text2);
+            letter-spacing: 0.05em;
+        }
+
+        /* ══════════════════════════════════════
+           TAB NAV BOTTOM
+        ══════════════════════════════════════ */
+        #tab-nav {
+            position: fixed; bottom: 0; left: 0; right: 0;
+            background: linear-gradient(180deg, #f0e4cc 0%, #e8d8bc 100%);
+            border-top: 1.5px solid var(--border);
+            z-index: 50;
+            box-shadow: 0 -4px 24px rgba(176,145,80,0.2);
+        }
+        .tab-btn {
+            flex: 1; display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            padding: 0.45rem 0.25rem 0.55rem;
+            cursor: pointer; transition: all 0.18s;
+            color: var(--muted);
+            border: none; background: transparent;
+            font-family: 'JetBrains Mono', monospace;
+            position: relative;
+        }
+        .tab-btn .tab-icon { font-size: 1.05rem; line-height: 1; }
+        .tab-btn .tab-label { font-size: 0.5rem; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; margin-top: 0.22rem; }
+        .tab-btn.active { color: var(--gold); }
+        .tab-btn.active::before {
+            content: '';
+            position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+            width: 2rem; height: 2px;
+            background: var(--gold);
+            border-radius: 0 0 2px 2px;
+        }
+        .tab-btn[data-tab="ingresos"].active { color: var(--green-l); }
+        .tab-btn[data-tab="ingresos"].active::before { background: var(--green-l); }
+        .tab-btn[data-tab="obligaciones"].active { color: #8b6914; }
+        .tab-btn[data-tab="obligaciones"].active::before { background: #8b6914; }
+        .tab-btn[data-tab="deudores"].active { color: var(--green-m); }
+        .tab-btn[data-tab="deudores"].active::before { background: var(--green-m); }
+        .tab-btn[data-tab="herramientas"].active { color: var(--sand); }
+        .tab-btn[data-tab="herramientas"].active::before { background: var(--sand); }
+
+        /* ══════════════════════════════════════
+           PANELS
+        ══════════════════════════════════════ */
+        .tab-panel { display: none; }
+        .tab-panel.active { display: block; }
+
+        #app-main { padding-bottom: 5.5rem; min-height: 100vh; }
+
+        /* ══════════════════════════════════════
+           TAB HEADER STRIP
+        ══════════════════════════════════════ */
+        .tab-header {
+            background: linear-gradient(90deg, var(--cream) 0%, var(--bg2) 100%);
+            border-bottom: 1px solid var(--border);
+            padding: 0.65rem 1rem 0.55rem;
+            position: sticky; top: 56px; z-index: 40;
+        }
+        .tab-header-text {
+            font-size: 0.6rem; font-weight: 800;
+            letter-spacing: 0.14em; text-transform: uppercase;
+            color: var(--text2);
+        }
+
+        /* ══════════════════════════════════════
+           CARDS
+        ══════════════════════════════════════ */
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            box-shadow: 0 2px 16px rgba(160,128,96,0.1), 0 1px 0 rgba(255,255,255,0.8) inset;
+        }
+        .card-inner {
+            background: var(--card2);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+        }
+
+        /* ══════════════════════════════════════
+           SECTION LABELS
+        ══════════════════════════════════════ */
+        .sec-label {
+            font-size: 0.58rem; font-weight: 800;
+            letter-spacing: 0.12em; text-transform: uppercase;
+            color: var(--text2);
+        }
+        .sec-label i { color: var(--gold); }
+
+        /* ══════════════════════════════════════
+           INPUTS
+        ══════════════════════════════════════ */
+        .inp {
+            background: #fdf8f0;
+            border: 1.5px solid var(--border2);
+            border-radius: 8px;
+            color: var(--text);
+            font-family: 'JetBrains Mono', monospace;
+            transition: border-color 0.15s, box-shadow 0.15s;
+        }
+        .inp:focus {
+            outline: none;
+            border-color: var(--gold);
+            box-shadow: 0 0 0 3px rgba(184,145,47,0.12);
+        }
+        .inp::placeholder { color: var(--muted); }
+
+        /* ══════════════════════════════════════
+           BUTTONS
+        ══════════════════════════════════════ */
+        .btn-gold {
+            background: linear-gradient(135deg, var(--gold2), var(--gold));
+            color: white;
+            border: none; border-radius: 8px;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 800; letter-spacing: 0.05em;
+            box-shadow: 0 2px 8px rgba(176,145,80,0.35);
+            transition: all 0.15s;
+            cursor: pointer;
+        }
+        .btn-gold:hover { filter: brightness(1.08); }
+
+        .btn-ghost {
+            background: var(--cream);
+            border: 1.5px solid var(--border2);
+            color: var(--text2);
+            border-radius: 8px;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700;
+            transition: all 0.15s; cursor: pointer;
+        }
+        .btn-ghost:hover { background: var(--cream2); border-color: var(--gold); }
+
+        .btn-green {
+            background: linear-gradient(135deg, var(--green-l), var(--green-m));
+            color: white; border: none; border-radius: 8px;
+            font-family: 'JetBrains Mono', monospace; font-weight: 800;
+            box-shadow: 0 2px 8px rgba(46,102,68,0.3);
+            cursor: pointer; transition: all 0.15s;
+        }
+        .btn-green:hover { filter: brightness(1.1); }
+
+        .btn-outline-gold {
+            background: transparent;
+            border: 1.5px solid var(--gold);
+            color: var(--gold);
+            border-radius: 8px; cursor: pointer;
+            font-family: 'JetBrains Mono', monospace; font-weight: 800;
+            transition: all 0.15s;
+        }
+        .btn-outline-gold:hover { background: rgba(184,145,47,0.08); }
+
+        .btn-outline-green {
+            background: transparent;
+            border: 1.5px solid var(--green-l);
+            color: var(--green-m);
+            border-radius: 8px; cursor: pointer;
+            font-family: 'JetBrains Mono', monospace; font-weight: 800;
+            transition: all 0.15s;
+        }
+        .btn-outline-green:hover { background: rgba(74,124,89,0.08); }
+
+        /* ══════════════════════════════════════
+           BALANCE GENERAL
+        ══════════════════════════════════════ */
+        #balance-general-section {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            box-shadow: 0 2px 16px rgba(160,128,96,0.1);
+        }
+        .balance-gran-total {
+            background: linear-gradient(135deg, #dff0e6 0%, #c8e6d4 60%, #b8ddc5 100%);
+            border: 1.5px solid #7ab893;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(74,124,89,0.15), inset 0 1px 0 rgba(255,255,255,0.6);
+        }
+        .balance-cuenta-card {
+            background: #fdf8f0;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            transition: border-color 0.2s;
+        }
+        .balance-cuenta-card:focus-within { border-color: var(--gold); }
+        .balance-input {
+            background: white;
+            border: 1.5px solid var(--border2);
+            color: var(--text);
+            font-family: 'JetBrains Mono', monospace;
+            border-radius: 8px;
+            transition: border-color 0.15s;
+        }
+        .balance-input:focus { outline: none; border-color: var(--gold); }
+        .balance-input-sm {
+            background: white;
+            border: 1px solid var(--border);
+            color: var(--text);
+            font-family: 'JetBrains Mono', monospace;
+            border-radius: 6px;
+        }
+        .balance-input-sm:focus { outline: none; border-color: var(--gold2); }
+        .balance-seccion-label {
+            font-size: 0.58rem; font-weight: 900;
+            letter-spacing: 0.12em; text-transform: uppercase;
+        }
+        .balance-equivalente {
+            font-size: 0.63rem; font-family: 'JetBrains Mono', monospace;
+            color: var(--muted);
+            transition: color 0.2s;
+        }
+        .balance-equivalente.activo { color: var(--green-m); }
+
+        @keyframes balancePulse {
+            0% { opacity: 1; }
+            40% { opacity: 0.45; }
+            100% { opacity: 1; }
+        }
+        .balance-pulse { animation: balancePulse 0.35s ease; }
+
+        /* ══════════════════════════════════════
+           RESUMEN MINI CARDS (patrimonio)
+        ══════════════════════════════════════ */
+        .mini-account-card {
+            background: rgba(255,255,255,0.7);
+            border: 1px solid rgba(120,160,130,0.3);
+            border-radius: 10px;
+            display: flex; flex-direction: column;
+            align-items: center; padding: 0.65rem 0.5rem;
+            gap: 0.3rem;
+        }
+        .mini-account-icon {
+            width: 34px; height: 34px; border-radius: 50%;
+            background: linear-gradient(135deg, rgba(255,255,255,0.9), rgba(220,210,190,0.8));
+            border: 1px solid rgba(160,128,96,0.35);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.85rem; color: var(--gold);
+            box-shadow: 0 2px 6px rgba(160,128,96,0.2);
+        }
+
+        /* ══════════════════════════════════════
+           BADGES
+        ══════════════════════════════════════ */
+        .badge { display: inline-block; font-size: 0.58rem; font-weight: 800; padding: 0.15rem 0.5rem; border-radius: 99px; border: 1px solid; font-family: 'JetBrains Mono', monospace; }
+        .badge-efectivo { background: #e8f4ec; color: #1f6b37; border-color: #9ecfb0; }
+        .badge-zelle    { background: #e5f4f7; color: #0e6880; border-color: #8dd0df; }
+        .badge-bcv      { background: #fdf3e0; color: #7a5500; border-color: #e0c080; }
+        .badge-usdt     { background: #e8f4f2; color: #1a5f52; border-color: #8dccc4; }
+
+        /* ══════════════════════════════════════
+           MODALES
+        ══════════════════════════════════════ */
+        #modal-abono-overlay,
+        #modal-deudor-overlay {
+            display: none; position: fixed; inset: 0;
+            background: rgba(58,42,24,0.55);
+            backdrop-filter: blur(4px);
+            z-index: 100;
+            align-items: center; justify-content: center;
+        }
+        #modal-abono-overlay.active,
+        #modal-deudor-overlay.active { display: flex; }
+
+        #modal-abono-box {
+            background: var(--card);
+            border: 1.5px solid var(--gold);
+            border-radius: 16px; padding: 1.5rem;
+            width: calc(100% - 2rem); max-width: 22rem;
+            box-shadow: 0 25px 60px rgba(58,42,24,0.35);
+        }
+        #modal-deudor-box {
+            background: var(--card);
+            border: 1.5px solid #7ab893;
+            border-radius: 16px; padding: 1.5rem;
+            width: calc(100% - 2rem); max-width: 22rem;
+            box-shadow: 0 25px 60px rgba(58,42,24,0.35);
+        }
+
+        /* ══════════════════════════════════════
+           TOAST
+        ══════════════════════════════════════ */
+        #toast {
+            display: none; position: fixed; bottom: 5.5rem; left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, var(--text2), var(--text));
+            color: var(--gold2);
+            font-size: 0.72rem; font-family: 'JetBrains Mono', monospace; font-weight: 700;
+            padding: 0.5rem 1.2rem; border-radius: 99px;
+            border: 1px solid var(--gold);
+            z-index: 200; white-space: nowrap;
+            box-shadow: 0 8px 24px rgba(58,42,24,0.3);
+            opacity: 0; transition: opacity 0.2s;
+        }
+        #toast.show { display: block; opacity: 1; }
+
+        /* ══════════════════════════════════════
+           COLAPSABLE FORMS
+        ══════════════════════════════════════ */
+        .form-collapse {
+            background: #fdf8f0;
+            border: 1.5px solid var(--border2);
+            border-radius: 12px;
+            box-shadow: inset 0 2px 8px rgba(160,128,96,0.08);
+        }
+        .radio-opt {
+            display: flex; align-items: center; justify-content: center;
+            padding: 0.5rem 0.4rem;
+            background: white;
+            border: 1.5px solid var(--border);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.15s;
+            font-size: 0.7rem; font-weight: 700;
+            color: var(--text2);
+        }
+        .radio-opt:hover { border-color: var(--gold); background: #fdf5e0; }
+        .radio-opt input { display: none; }
+        .radio-opt.checked-efectivo { border-color: #6ab880; background: #edf7f0; color: #1f6b37; }
+        .radio-opt.checked-zelle    { border-color: #7accd8; background: #e5f4f7; color: #0e6880; }
+        .radio-opt.checked-bcv      { border-color: var(--gold2); background: #fdf3e0; color: #7a5500; }
+        .radio-opt.checked-usdt     { border-color: #6abdb5; background: #e8f4f2; color: #1a5f52; }
+
+        /* ══════════════════════════════════════
+           HISTORIAL CARPETAS
+        ══════════════════════════════════════ */
+        .folder-header {
+            background: linear-gradient(90deg, var(--cream2), var(--card2));
+            border: 1px solid var(--border);
+            border-radius: 10px 10px 0 0;
+            padding: 0.6rem 0.75rem;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+        .folder-header:hover { background: linear-gradient(90deg, var(--cream3), var(--cream2)); }
+        .folder-body {
+            background: white;
+            border: 1px solid var(--border);
+            border-top: none;
+            border-radius: 0 0 10px 10px;
+        }
+        .hist-item {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+        }
+
+        /* ══════════════════════════════════════
+           DEUDA / DEUDOR CARDS (rendered)
+        ══════════════════════════════════════ */
+        .deuda-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            box-shadow: 0 1px 6px rgba(160,128,96,0.08);
+        }
+        .deudor-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 1px 6px rgba(160,128,96,0.08);
+        }
+
+        /* ══════════════════════════════════════
+           AVISO BCV
+        ══════════════════════════════════════ */
+        .aviso-bcv {
+            background: #fdf3e0;
+            border: 1px solid #e0c080;
+            border-radius: 8px;
+            padding: 0.5rem 0.65rem;
+            font-size: 0.65rem;
+            color: #7a5500;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* ══════════════════════════════════════
+           BCV STATUS
+        ══════════════════════════════════════ */
+        #bcv-status { font-size: 0.65rem; font-family: 'JetBrains Mono', monospace; color: var(--muted); }
+
+        /* ══════════════════════════════════════
+           TRANSITIONS
+        ══════════════════════════════════════ */
+        #label-monto-ingreso { transition: color 0.2s; }
+        #aviso-bcv-deudor, #aviso-bcv-abono-deudor { transition: all 0.15s; }
+
+        html { scroll-behavior: smooth; }
+
+        /* ══════════════════════════════════════
+           MÓDULO DIVISAS COMPRADAS
+        ══════════════════════════════════════ */
+        .tab-btn[data-tab="divisas"].active { color: #7c3aed; }
+        .tab-btn[data-tab="divisas"].active::before { background: #7c3aed; }
+
+        .div-kpi-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 0.85rem 1rem;
+            box-shadow: 0 2px 10px rgba(160,128,96,0.1), 0 1px 0 rgba(255,255,255,0.8) inset;
+            position: relative;
+            overflow: hidden;
+        }
+        .div-kpi-card::before {
+            content: '';
+            position: absolute; top: 0; left: 0; right: 0;
+            height: 3px;
+        }
+        .div-kpi-card.kpi-retiro::before { background: linear-gradient(90deg, #7c3aed, #a855f7); }
+        .div-kpi-card.kpi-deuda::before  { background: linear-gradient(90deg, #dc2626, #f59e0b); }
+
+        .div-compra-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 1px 6px rgba(160,128,96,0.08);
+            transition: border-color 0.15s;
+        }
+        .div-compra-card:hover { border-color: #c4b5fd; }
+
+        .badge-pagado     { background: #dcfce7; color: #15803d; border: 1px solid #86efac; font-family:'JetBrains Mono',monospace; font-size:0.55rem; font-weight:800; padding:0.15rem 0.5rem; border-radius:99px; display:inline-block; }
+        .badge-debo       { background: #fef3c7; color: #92400e; border: 1px solid #fcd34d; font-family:'JetBrains Mono',monospace; font-size:0.55rem; font-weight:800; padding:0.15rem 0.5rem; border-radius:99px; display:inline-block; }
+        .badge-retirado   { background: #dbeafe; color: #1d4ed8; border: 1px solid #93c5fd; font-family:'JetBrains Mono',monospace; font-size:0.55rem; font-weight:800; padding:0.15rem 0.5rem; border-radius:99px; display:inline-block; }
+        .badge-pendiente-ret { background: #ede9fe; color: #5b21b6; border: 1px solid #c4b5fd; font-family:'JetBrains Mono',monospace; font-size:0.55rem; font-weight:800; padding:0.15rem 0.5rem; border-radius:99px; display:inline-block; }
+
+        .div-estado-opt {
+            display: flex; align-items: center; justify-content: center; gap: 0.35rem;
+            padding: 0.5rem 0.4rem;
+            background: white;
+            border: 1.5px solid var(--border);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.15s;
+            font-size: 0.65rem; font-weight: 700;
+            color: var(--text2);
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .div-estado-opt:hover { border-color: #a855f7; background: #faf5ff; }
+        .div-estado-opt input[type="radio"] { display: none; }
+        .div-estado-opt.sel-pagado   { border-color: #22c55e; background: #f0fdf4; color: #15803d; }
+        .div-estado-opt.sel-debo     { border-color: #f59e0b; background: #fffbeb; color: #92400e; }
+        .div-estado-opt.sel-retirado { border-color: #3b82f6; background: #eff6ff; color: #1d4ed8; }
+        .div-estado-opt.sel-pendret  { border-color: #a855f7; background: #faf5ff; color: #5b21b6; }
+
+        .div-preview-bs {
+            background: linear-gradient(135deg, #faf5ff, #f3e8ff);
+            border: 1.5px solid #c4b5fd;
+            border-radius: 10px;
+            padding: 0.65rem 0.85rem;
+            display: flex; align-items: center; justify-content: space-between;
+            gap: 0.5rem;
+        }
+
+        .div-accion-btn {
+            padding: 0.28rem 0.45rem;
+            border-radius: 6px;
+            border: 1px solid;
+            cursor: pointer;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.58rem; font-weight: 800;
+            transition: all 0.15s;
+            display: inline-flex; align-items: center; gap: 0.25rem;
+            white-space: nowrap;
+        }
+        .div-accion-btn:hover { filter: brightness(0.95); transform: scale(0.97); }
+    </style>
+</head>
+<body>
+
+<!-- ═══════════════ NAVBAR ═══════════════ -->
+<nav id="main-navbar">
+    <div class="max-w-md mx-auto px-4 py-2.5 flex justify-between items-center">
+        <div class="flex items-center gap-2.5">
+            <div class="nav-logo-icon">
+                <i class="fa-solid fa-leaf"></i>
+            </div>
+            <div class="flex flex-col">
+                <span class="nav-logo-m leading-none">MTHORI</span>
+                <span style="font-size:0.52rem; font-weight:800; letter-spacing:0.18em; text-transform:uppercase; color:var(--text3);">By Order of the Finance</span>
+            </div>
+        </div>
+        <div class="nav-date-badge" id="current-date"></div>
+    </div>
+</nav>
+
+<!-- ═══════════════ APP MAIN ═══════════════ -->
+<div id="app-main" class="max-w-md mx-auto">
+
+    <!-- ══════════════════════════════════════════
+         TAB 1: INICIO / DASHBOARD
+    ══════════════════════════════════════════ -->
+    <div id="tab-inicio" class="tab-panel active">
+        <div class="tab-header">
+            <span class="tab-header-text">
+                <i class="fa-solid fa-vault mr-1.5" style="color:var(--gold)"></i>Dashboard · Balance General
+            </span>
+        </div>
+        <div class="px-3 pt-3 space-y-3">
+
+            <!-- TASA BCV -->
+            <section class="card p-4">
+                <h2 class="sec-label mb-2.5">
+                    <i class="fa-solid fa-money-bill-trend-up mr-2"></i> Ref. de Cambio (BCV)
+                </h2>
+                <div class="card-inner p-3 space-y-2">
+                    <label class="block" style="font-size:0.62rem; font-weight:700; color:var(--text3);">Tasa Oficial BCV</label>
+                    <div class="flex items-center gap-2">
+                        <div class="relative rounded-md flex-1">
+                            <input type="number" step="0.01" id="tasa-bcv"
+                                class="inp w-full pl-2 pr-8 py-2 text-sm font-black"
+                                value="0.00" oninput="onTasaManual()">
+                            <div class="absolute inset-y-0 right-0 pr-2.5 flex items-center pointer-events-none">
+                                <span style="font-size:0.65rem; font-weight:800; color:var(--gold);">Bs</span>
+                            </div>
+                        </div>
+                        <button onclick="fetchBCVRate(true)" class="btn-ghost px-3 py-2" style="font-size:0.65rem; white-space:nowrap;">
+                            <i class="fa-solid fa-rotate mr-1" style="color:var(--gold)"></i> BCV
+                        </button>
+                    </div>
+                    <div id="bcv-status" class="flex items-center gap-1.5">
+                        <span id="bcv-dot" class="inline-block w-2 h-2 rounded-full" style="background:var(--gold2)"></span>
+                        <span id="bcv-status-text">Consultando tasa BCV...</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- BALANCE GENERAL -->
+            <section id="balance-general-section" class="p-4">
+
+                <div class="flex justify-between items-center mb-3">
+                    <h2 class="sec-label">
+                        <i class="fa-solid fa-vault mr-2"></i> Balance General
+                    </h2>
+                    <div style="font-size:0.58rem; font-weight:700; color:var(--muted); background:var(--cream2); padding:0.2rem 0.6rem; border-radius:6px; border:1px solid var(--border);">
+                        <i class="fa-solid fa-bolt mr-0.5" style="color:var(--green-l)"></i> Tiempo real
+                    </div>
+                </div>
+
+                <!-- Gran Total -->
+                <div class="balance-gran-total p-4 mb-3">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="sec-label" style="color:var(--green-m);">
+                            <i class="fa-solid fa-crown mr-1" style="color:var(--gold)"></i> Patrimonio Total
+                        </span>
+                        <span style="font-size:0.58rem; font-weight:700; color:var(--green-m); background:rgba(74,124,89,0.12); padding:0.2rem 0.55rem; border-radius:99px; border:1px solid rgba(74,124,89,0.3);">
+                            Todas las cuentas
+                        </span>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3 mb-3">
+                        <div>
+                            <span style="font-size:0.55rem; color:var(--green-d); font-weight:700; text-transform:uppercase; letter-spacing:0.08em; display:block; margin-bottom:0.25rem;">Total en Dólares</span>
+                            <span id="bal-gran-total-usd" style="font-size:1.7rem; font-weight:900; color:var(--text); font-family:'JetBrains Mono',monospace; line-height:1;">$0,00</span>
+                        </div>
+                        <div class="text-right">
+                            <span style="font-size:0.55rem; color:var(--green-d); font-weight:700; text-transform:uppercase; letter-spacing:0.08em; display:block; margin-bottom:0.25rem;">Equivalente Bs.</span>
+                            <span id="bal-gran-total-bs" style="font-size:1rem; font-weight:900; color:var(--green-m); font-family:'JetBrains Mono',monospace; line-height:1;">0,00</span>
+                            <span style="font-size:0.6rem; color:var(--green-m); font-weight:700; display:block;">Bs.</span>
+                        </div>
+                    </div>
+                    <!-- Mini resumen 3 columnas -->
+                    <div class="grid grid-cols-3 gap-2">
+                        <div class="mini-account-card">
+                            <div class="mini-account-icon"><i class="fa-solid fa-building-columns"></i></div>
+                            <span style="font-size:0.5rem; text-transform:uppercase; font-weight:800; color:var(--text3); letter-spacing:0.06em;">Bancos</span>
+                            <span id="bal-resumen-bancos" style="font-size:0.7rem; font-weight:900; color:var(--text); font-family:'JetBrains Mono',monospace;">$0,00</span>
+                        </div>
+                        <div class="mini-account-card">
+                            <div class="mini-account-icon"><i class="fa-solid fa-dollar-sign"></i></div>
+                            <span style="font-size:0.5rem; text-transform:uppercase; font-weight:800; color:var(--text3); letter-spacing:0.06em;">Activos $</span>
+                            <span id="bal-resumen-activos" style="font-size:0.7rem; font-weight:900; color:var(--text); font-family:'JetBrains Mono',monospace;">$0,00</span>
+                        </div>
+                        <div class="mini-account-card">
+                            <div class="mini-account-icon" style="color:var(--green-l);"><i class="fa-solid fa-hand-holding-dollar"></i></div>
+                            <span style="font-size:0.5rem; text-transform:uppercase; font-weight:800; color:var(--text3); letter-spacing:0.06em;">Por Cobrar</span>
+                            <span id="bal-resumen-cobrar" style="font-size:0.7rem; font-weight:900; color:var(--green-m); font-family:'JetBrains Mono',monospace;">$0,00</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cuentas Bancarias Nacionales -->
+                <div class="balance-cuenta-card p-3 mb-2.5">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="balance-seccion-label" style="color:var(--gold);">
+                            <i class="fa-solid fa-building-columns mr-1"></i> Cuentas Bancarias (Bs.)
+                        </span>
+                        <button onclick="balAddBanco()" class="btn-outline-gold px-2.5 py-1" style="font-size:0.6rem;">
+                            <i class="fa-solid fa-plus mr-0.5"></i> Banco
+                        </button>
+                    </div>
+                    <div id="bal-bancos-lista" class="space-y-2"></div>
+                    <div class="mt-2 pt-2 flex justify-between items-center" style="border-top:1px solid var(--border);">
+                        <span style="font-size:0.58rem; color:var(--muted);">Total bancos ≈</span>
+                        <div>
+                            <span id="bal-bancos-total-usd" style="font-size:0.75rem; font-weight:900; color:var(--text); font-family:'JetBrains Mono',monospace;">$0,00</span>
+                            <span style="font-size:0.58rem; color:var(--gold); font-family:'JetBrains Mono',monospace; margin-left:0.25rem;" id="bal-bancos-total-bs-label">(0,00 Bs.)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Zelle -->
+                <div class="balance-cuenta-card p-3 mb-2.5">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="balance-seccion-label" style="color:#0e6880;">
+                            <i class="fa-solid fa-credit-card mr-1"></i> Zelle ($)
+                        </span>
+                        <span style="font-size:0.58rem; color:var(--muted);">Dólares digitales</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <div class="relative flex-1">
+                            <span class="absolute left-2.5 top-1/2 -translate-y-1/2 font-black text-sm" style="color:#0e6880;">$</span>
+                            <input type="number" step="0.01" id="bal-zelle" placeholder="0.00" min="0"
+                                class="balance-input w-full pl-7 pr-3 py-2.5 text-base font-black"
+                                oninput="recalcularBalance()">
+                        </div>
+                        <div class="text-right min-w-[88px]">
+                            <span id="bal-zelle-bs" class="balance-equivalente block text-right">— Bs.</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Binance / USDT -->
+                <div class="balance-cuenta-card p-3 mb-2.5">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="balance-seccion-label" style="color:#1a5f52;">
+                            <i class="fa-solid fa-circle-dollar-to-slot mr-1"></i> Binance / USDT ($)
+                        </span>
+                        <span style="font-size:0.58rem; color:var(--muted);">Cripto</span>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2 mb-2">
+                        <div>
+                            <label style="font-size:0.58rem; color:#1a5f52; font-weight:700; text-transform:uppercase; display:block; margin-bottom:0.25rem;">Saldo USDT</label>
+                            <div class="relative">
+                                <span class="absolute left-2.5 top-1/2 -translate-y-1/2 font-black text-sm" style="color:#1a5f52;">$</span>
+                                <input type="number" step="0.01" id="bal-binance" placeholder="0.00" min="0"
+                                    class="balance-input w-full pl-7 pr-2 py-2 text-sm font-black"
+                                    oninput="recalcularBalance()">
+                            </div>
+                        </div>
+                        <div>
+                            <label style="font-size:0.58rem; color:var(--gold); font-weight:700; text-transform:uppercase; display:block; margin-bottom:0.25rem;">Tasa venta (Bs/$)</label>
+                            <input type="number" step="0.01" id="bal-binance-tasa" placeholder="Tasa Bs/$" min="0"
+                                class="balance-input-sm balance-input w-full pl-2 pr-2 py-2 text-sm font-bold"
+                                oninput="recalcularBalance()">
+                        </div>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span style="font-size:0.58rem; color:var(--muted);">Equivalente Bs. (a tasa venta):</span>
+                        <span id="bal-binance-bs" class="balance-equivalente text-right">— Bs.</span>
+                    </div>
+                </div>
+
+                <!-- Efectivo -->
+                <div class="balance-cuenta-card p-3 mb-2.5">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="balance-seccion-label" style="color:var(--green-l);">
+                            <i class="fa-solid fa-money-bill-1 mr-1"></i> Efectivo Físico ($)
+                        </span>
+                        <span style="font-size:0.58rem; color:var(--muted);">Cash en mano</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <div class="relative flex-1">
+                            <span class="absolute left-2.5 top-1/2 -translate-y-1/2 font-black text-sm" style="color:var(--green-l);">$</span>
+                            <input type="number" step="0.01" id="bal-efectivo" placeholder="0.00" min="0"
+                                class="balance-input w-full pl-7 pr-3 py-2.5 text-base font-black"
+                                oninput="recalcularBalance()">
+                        </div>
+                        <div class="text-right min-w-[88px]">
+                            <span id="bal-efectivo-bs" class="balance-equivalente block text-right">— Bs.</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Por Cobrar -->
+                <div class="balance-cuenta-card p-3" style="border-color:rgba(74,124,89,0.4);">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="balance-seccion-label" style="color:var(--green-m);">
+                            <i class="fa-solid fa-hand-holding-dollar mr-1"></i> Por Cobrar (Deudores)
+                        </span>
+                        <span style="font-size:0.58rem; font-weight:700; color:var(--green-m); background:rgba(74,124,89,0.1); padding:0.2rem 0.5rem; border-radius:99px; border:1px solid rgba(74,124,89,0.3);">
+                            <i class="fa-solid fa-link mr-0.5" style="font-size:0.5rem;"></i> Sincronizado
+                        </span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <span id="bal-cobrar-usd" style="font-size:1.2rem; font-weight:900; color:var(--green-m); font-family:'JetBrains Mono',monospace;">$0,00</span>
+                            <span style="font-size:0.58rem; color:var(--muted); display:block;">leído automáticamente de Deudores</span>
+                        </div>
+                        <div class="text-right">
+                            <span id="bal-cobrar-bs" style="font-size:0.85rem; font-weight:900; color:var(--gold); font-family:'JetBrains Mono',monospace; display:block;">0,00 Bs.</span>
+                            <span style="font-size:0.58rem; color:var(--muted);">equivalente BCV</span>
+                        </div>
+                    </div>
+                </div>
+
+            </section>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════
+         TAB 2: INGRESOS
+    ══════════════════════════════════════════ -->
+    <div id="tab-ingresos" class="tab-panel">
+        <div class="tab-header">
+            <span class="tab-header-text" style="color:var(--green-m);">
+                <i class="fa-solid fa-chart-line mr-1.5"></i>Ingresos Diarios
+            </span>
+        </div>
+        <div class="px-3 pt-3 space-y-3">
+
+            <section class="card p-4" style="border-left:3.5px solid var(--green-l);">
+                <div class="flex justify-between items-center mb-3">
+                    <h2 class="sec-label" style="color:var(--green-m);">
+                        <i class="fa-solid fa-chart-line mr-2" style="color:var(--green-l)"></i> Ingresos Diarios
+                    </h2>
+                    <button onclick="toggleFormIngreso()" class="btn-outline-green px-3 py-1.5" style="font-size:0.65rem;">
+                        <i class="fa-solid fa-plus mr-1"></i> Registrar
+                    </button>
+                </div>
+
+                <!-- Formulario colapsable -->
+                <div id="ingreso-form" class="hidden form-collapse p-3 mb-4 space-y-3">
+                    <h3 style="font-size:0.7rem; font-weight:800; color:var(--green-m); text-transform:uppercase; letter-spacing:0.08em;">Nuevo Ingreso</h3>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="block mb-0.5" style="font-size:0.6rem; font-weight:700; color:var(--text3);">Concepto / Descripción</label>
+                            <input type="text" id="ing-concepto" placeholder="Ej. Venta, Servicio..."
+                                class="inp w-full text-xs p-2">
+                        </div>
+                        <div>
+                            <label id="label-monto-ingreso" class="block mb-0.5" style="font-size:0.6rem; font-weight:700; color:var(--text3);">Monto ($)</label>
+                            <input type="number" step="0.01" id="ing-monto" placeholder="0.00"
+                                class="inp w-full text-xs p-2 font-black">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block mb-0.5" style="font-size:0.6rem; font-weight:700; color:var(--text3);">Fecha</label>
+                        <input type="date" id="ing-fecha" class="inp w-full text-xs p-2">
+                    </div>
+                    <div>
+                        <label class="block mb-1" style="font-size:0.6rem; font-weight:700; color:var(--text3);">Método Recibido</label>
+                        <div class="grid grid-cols-2 gap-2">
+                            <label class="radio-opt">
+                                <input type="radio" name="metodo-ingreso" value="efectivo" checked onchange="actualizarLabelMonto()">
+                                <i class="fa-solid fa-money-bill-1 mr-1" style="color:#1f6b37;"></i> Efectivo
+                            </label>
+                            <label class="radio-opt">
+                                <input type="radio" name="metodo-ingreso" value="zelle" onchange="actualizarLabelMonto()">
+                                <i class="fa-solid fa-credit-card mr-1" style="color:#0e6880;"></i> Zelle
+                            </label>
+                            <label class="radio-opt">
+                                <input type="radio" name="metodo-ingreso" value="bcv" onchange="actualizarLabelMonto()">
+                                <i class="fa-solid fa-building-columns mr-1" style="color:var(--gold);"></i> BCV (Bs.)
+                            </label>
+                            <label class="radio-opt">
+                                <input type="radio" name="metodo-ingreso" value="usdt" onchange="actualizarLabelMonto()">
+                                <i class="fa-solid fa-circle-dollar-to-slot mr-1" style="color:#1a5f52;"></i> USDT
+                            </label>
+                        </div>
+                        <div id="aviso-bcv-ingreso" class="hidden mt-2 aviso-bcv">
+                            <i class="fa-solid fa-triangle-exclamation mr-1"></i> Ingresa el monto en <strong>Bolívares (Bs.)</strong>. Se convertirá automáticamente a dólares usando la tasa BCV activa al guardar.
+                        </div>
+                    </div>
+                    <div class="flex justify-end gap-2 pt-1">
+                        <button onclick="toggleFormIngreso()" class="btn-ghost px-3 py-1.5" style="font-size:0.65rem;">Cancelar</button>
+                        <button onclick="guardarIngreso()" class="btn-green px-3 py-1.5" style="font-size:0.65rem;">Guardar Ingreso</button>
+                    </div>
+                </div>
+
+                <!-- KPIs: Semana + Mes Actual -->
+                <div class="grid grid-cols-2 gap-2 mb-3">
+                    <div class="card-inner p-2.5" style="border-left:3px solid var(--green-l);">
+                        <span style="display:block;font-size:0.52rem;font-weight:900;text-transform:uppercase;letter-spacing:0.08em;color:var(--green-m);margin-bottom:0.2rem;">
+                            <i class="fa-solid fa-calendar-week mr-0.5"></i> Últimos 7 días
+                        </span>
+                        <span id="ingreso-total-semana" style="font-size:1rem;font-weight:900;color:var(--green-m);font-family:'JetBrains Mono',monospace;">$0,00</span>
+                    </div>
+                    <div class="card-inner p-2.5" style="border-left:3px solid var(--gold);">
+                        <span style="display:block;font-size:0.52rem;font-weight:900;text-transform:uppercase;letter-spacing:0.08em;color:var(--gold);margin-bottom:0.2rem;">
+                            <i class="fa-solid fa-calendar-days mr-0.5"></i> Llevo este Mes
+                        </span>
+                        <span id="ingreso-total-mes" style="font-size:1rem;font-weight:900;color:var(--text);font-family:'JetBrains Mono',monospace;">$0,00</span>
+                    </div>
+                </div>
+
+                <!-- Gráfica semanal -->
+                <div class="card-inner p-3 mb-3">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="sec-label" style="color:var(--text2);">
+                            <i class="fa-solid fa-chart-bar mr-1" style="color:var(--gold)"></i> Ingresos · Últimos 7 Días
+                        </span>
+                    </div>
+                    <div style="position:relative; height:160px; width:100%;">
+                        <canvas id="chart-ingresos"></canvas>
+                    </div>
+                </div>
+
+                <!-- Historial jerárquico -->
+                <div>
+                    <p class="sec-label mb-2" style="color:var(--text2);">
+                        <i class="fa-solid fa-folder-tree mr-1" style="color:var(--green-l)"></i> Historial de Ingreso Diario
+                    </p>
+                    <div id="ingreso-historial-container" class="space-y-2"></div>
+                </div>
+            </section>
+
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════
+         TAB 3: OBLIGACIONES / CUENTAS
+    ══════════════════════════════════════════ -->
+    <div id="tab-obligaciones" class="tab-panel">
+        <div class="tab-header">
+            <span class="tab-header-text" style="color:#8b6914;">
+                <i class="fa-solid fa-scale-balanced mr-1.5"></i>Obligaciones · Cuentas por Pagar
+            </span>
+        </div>
+        <div class="px-3 pt-3 space-y-3">
+
+            <!-- RESUMEN FALTA POR PAGAR -->
+            <section class="card p-4" style="border-left:3.5px solid var(--gold);">
+                <div class="flex justify-between items-center mb-3">
+                    <h2 class="sec-label">
+                        <i class="fa-solid fa-scale-balanced mr-2" style="color:var(--gold)"></i> Falta por Pagar
+                    </h2>
+                    <div class="text-right">
+                        <span style="font-size:0.55rem; color:var(--muted); display:block; text-transform:uppercase; font-weight:700;">Deuda Total Eq.</span>
+                        <span style="font-size:1.05rem; font-weight:900; color:var(--gold); font-family:'JetBrains Mono',monospace;" id="total-general-usd">$0.00</span>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div class="card-inner p-2.5">
+                        <span style="display:block; font-size:0.58rem; font-weight:800; text-transform:uppercase; color:#1f6b37; margin-bottom:0.2rem;"><i class="fa-solid fa-money-bill-1 mr-1"></i> En Efectivo</span>
+                        <span style="font-size:1rem; font-weight:900; color:var(--text); font-family:'JetBrains Mono',monospace;" id="total-debido-efectivo">$0.00</span>
+                    </div>
+                    <div class="card-inner p-2.5">
+                        <span style="display:block; font-size:0.58rem; font-weight:800; text-transform:uppercase; color:#0e6880; margin-bottom:0.2rem;"><i class="fa-solid fa-credit-card mr-1"></i> Por Zelle</span>
+                        <span style="font-size:1rem; font-weight:900; color:var(--text); font-family:'JetBrains Mono',monospace;" id="total-debido-zelle">$0.00</span>
+                    </div>
+                    <div class="card-inner p-2.5">
+                        <span style="display:block; font-size:0.58rem; font-weight:800; text-transform:uppercase; color:var(--gold); margin-bottom:0.2rem;"><i class="fa-solid fa-building-columns mr-1"></i> A Tasa BCV</span>
+                        <span style="font-size:0.88rem; font-weight:900; color:var(--text); font-family:'JetBrains Mono',monospace;" id="total-debido-bcv-bs">0,00 Bs</span>
+                        <span style="font-size:0.65rem; color:var(--muted); font-weight:700; display:block;" id="total-debido-bcv-usd">($0.00)</span>
+                    </div>
+                    <div class="card-inner p-2.5" style="border-color:rgba(26,95,82,0.3);">
+                        <span style="display:block; font-size:0.58rem; font-weight:800; text-transform:uppercase; color:#1a5f52; margin-bottom:0.2rem;"><i class="fa-solid fa-circle-dollar-to-slot mr-1"></i> Por USDT</span>
+                        <span style="font-size:1rem; font-weight:900; color:var(--text); font-family:'JetBrains Mono',monospace;" id="total-debido-usdt">$0.00</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- LISTA CUENTAS POR PAGAR -->
+            <section class="card p-4">
+                <div class="flex justify-between items-center mb-3">
+                    <h2 class="sec-label">
+                        <i class="fa-solid fa-list-check mr-2" style="color:var(--gold)"></i> Lista Cuentas por Pagar
+                    </h2>
+                    <button onclick="toggleForm()" class="btn-outline-gold px-3 py-1.5" style="font-size:0.65rem;">
+                        <i class="fa-solid fa-plus mr-1"></i> Nueva
+                    </button>
+                </div>
+
+                <div id="deuda-form" class="hidden form-collapse p-3 mb-4 space-y-3">
+                    <h3 style="font-size:0.7rem; font-weight:800; color:var(--gold); text-transform:uppercase; letter-spacing:0.08em;">Registrar nueva obligación</h3>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="block mb-0.5" style="font-size:0.6rem; font-weight:700; color:var(--text3);">Descripción / Nombre</label>
+                            <input type="text" id="nueva-deuda-nombre" placeholder="Ej. Sr Rafael, Luz..."
+                                class="inp w-full text-xs p-2">
+                        </div>
+                        <div>
+                            <label class="block mb-0.5" style="font-size:0.6rem; font-weight:700; color:var(--text3);">Monto Inicial ($)</label>
+                            <input type="number" step="0.01" id="nueva-deuda-monto" placeholder="Monto $"
+                                class="inp w-full text-xs p-2 font-black">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block mb-1" style="font-size:0.6rem; font-weight:700; color:var(--text3);">Método / Moneda de Pago</label>
+                        <div class="grid grid-cols-2 gap-2">
+                            <label class="radio-opt">
+                                <input type="radio" name="tipo-tasa" value="efectivo" checked>
+                                <i class="fa-solid fa-money-bill-1 mr-1" style="color:#1f6b37;"></i> Efectivo
+                            </label>
+                            <label class="radio-opt">
+                                <input type="radio" name="tipo-tasa" value="zelle">
+                                <i class="fa-solid fa-credit-card mr-1" style="color:#0e6880;"></i> Zelle
+                            </label>
+                            <label class="radio-opt">
+                                <input type="radio" name="tipo-tasa" value="bcv">
+                                <i class="fa-solid fa-building-columns mr-1" style="color:var(--gold);"></i> BCV
+                            </label>
+                            <label class="radio-opt">
+                                <input type="radio" name="tipo-tasa" value="usdt">
+                                <i class="fa-solid fa-circle-dollar-to-slot mr-1" style="color:#1a5f52;"></i> USDT
+                            </label>
+                        </div>
+                    </div>
+                    <div class="flex justify-end gap-2 pt-1">
+                        <button onclick="toggleForm()" class="btn-ghost px-3 py-1.5" style="font-size:0.65rem;">Cancelar</button>
+                        <button onclick="agregarDeuda()" class="btn-gold px-3 py-1.5" style="font-size:0.65rem;">Guardar Cuenta</button>
+                    </div>
+                </div>
+
+                <div id="lista-deudas" class="space-y-2"></div>
+            </section>
+
+            <!-- HISTORIAL PAGOS Y ABONOS -->
+            <section class="card p-4">
+                <h2 class="sec-label mb-3" style="color:var(--text2);">
+                    <i class="fa-solid fa-folder-tree mr-2" style="color:var(--sand)"></i> Historial de Pagos y Abonos
+                </h2>
+                <div id="historial-meses-container" class="space-y-2"></div>
+            </section>
+
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════
+         TAB 4: DEUDORES
+    ══════════════════════════════════════════ -->
+    <div id="tab-deudores" class="tab-panel">
+        <div class="tab-header">
+            <span class="tab-header-text" style="color:var(--green-m);">
+                <i class="fa-solid fa-hand-holding-dollar mr-1.5"></i>Deudores · Por Cobrar
+            </span>
+        </div>
+        <div class="px-3 pt-3 space-y-3">
+
+            <section class="card p-4">
+                <div class="flex justify-between items-center mb-3">
+                    <h2 class="sec-label" style="color:var(--green-m);">
+                        <i class="fa-solid fa-hand-holding-dollar mr-2" style="color:var(--green-l)"></i> Deudores
+                    </h2>
+                    <button onclick="toggleFormDeudor()" class="btn-outline-green px-3 py-1.5" style="font-size:0.65rem;">
+                        <i class="fa-solid fa-plus mr-1"></i> Nuevo
+                    </button>
+                </div>
+
+                <!-- Resumen total -->
+                <div id="deudores-resumen" class="hidden mb-3">
+                    <div class="card-inner p-3 flex justify-between items-center" style="border-left:3px solid var(--green-l);">
+                        <div>
+                            <span style="display:block; font-size:0.58rem; font-weight:800; text-transform:uppercase; color:var(--green-m); letter-spacing:0.08em;">
+                                <i class="fa-solid fa-arrow-trend-up mr-1"></i> Total por Cobrar
+                            </span>
+                            <span style="font-size:0.6rem; color:var(--muted);">equivalente en dólares</span>
+                        </div>
+                        <span style="font-size:1.3rem; font-weight:900; color:var(--green-m); font-family:'JetBrains Mono',monospace;" id="deudores-total-usd">$0,00</span>
+                    </div>
+                </div>
+
+                <!-- Formulario nuevo deudor -->
+                <div id="deudor-form" class="hidden form-collapse p-3 mb-4 space-y-3">
+                    <h3 style="font-size:0.7rem; font-weight:800; color:var(--green-m); text-transform:uppercase; letter-spacing:0.08em;">
+                        <i class="fa-solid fa-user-plus mr-1"></i> Registrar nuevo deudor
+                    </h3>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="block mb-0.5" style="font-size:0.6rem; font-weight:700; color:var(--text3);">Nombre / Descripción</label>
+                            <input type="text" id="nd-nombre" placeholder="Ej. Juan, Préstamo..."
+                                class="inp w-full text-xs p-2">
+                        </div>
+                        <div>
+                            <label id="nd-label-monto" class="block mb-0.5" style="font-size:0.6rem; font-weight:700; color:var(--text3);">Monto ($)</label>
+                            <input type="number" step="0.01" id="nd-monto" placeholder="0.00"
+                                class="inp w-full text-xs p-2 font-black">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block mb-1" style="font-size:0.6rem; font-weight:700; color:var(--text3);">Método / Moneda</label>
+                        <div class="grid grid-cols-2 gap-2">
+                            <label class="radio-opt">
+                                <input type="radio" name="nd-moneda" value="usd" checked onchange="ndActualizarLabel()">
+                                <i class="fa-solid fa-dollar-sign mr-1" style="color:#1f6b37;"></i> Dólares ($)
+                            </label>
+                            <label class="radio-opt">
+                                <input type="radio" name="nd-moneda" value="bs" onchange="ndActualizarLabel()">
+                                <i class="fa-solid fa-building-columns mr-1" style="color:var(--gold);"></i> Bolívares
+                            </label>
+                            <label class="radio-opt">
+                                <input type="radio" name="nd-moneda" value="zelle" onchange="ndActualizarLabel()">
+                                <i class="fa-solid fa-credit-card mr-1" style="color:#0e6880;"></i> Zelle
+                            </label>
+                            <label class="radio-opt">
+                                <input type="radio" name="nd-moneda" value="usdt" onchange="ndActualizarLabel()">
+                                <i class="fa-solid fa-circle-dollar-to-slot mr-1" style="color:#1a5f52;"></i> USDT
+                            </label>
+                        </div>
+                    </div>
+                    <div id="aviso-bcv-deudor" class="hidden aviso-bcv">
+                        <i class="fa-solid fa-triangle-exclamation mr-1"></i>
+                        Ingresa el monto en <strong>Bolívares (Bs.)</strong>. Se guardará el equivalente en $ usando la tasa BCV activa.
+                    </div>
+                    <div class="flex justify-end gap-2 pt-1">
+                        <button onclick="toggleFormDeudor()" class="btn-ghost px-3 py-1.5" style="font-size:0.65rem;">Cancelar</button>
+                        <button onclick="agregarDeudor()" class="btn-green px-3 py-1.5" style="font-size:0.65rem;">
+                            <i class="fa-solid fa-floppy-disk mr-1"></i>Guardar
+                        </button>
+                    </div>
+                </div>
+
+                <div id="lista-deudores" class="space-y-2"></div>
+            </section>
+
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════
+         TAB 5: HERRAMIENTAS
+    ══════════════════════════════════════════ -->
+    <div id="tab-herramientas" class="tab-panel">
+        <div class="tab-header">
+            <span class="tab-header-text" style="color:var(--sand);">
+                <i class="fa-solid fa-arrows-rotate mr-1.5"></i>Calculadora de Conversión
+            </span>
+        </div>
+        <div class="px-3 pt-3 space-y-3">
+
+            <section class="card p-5">
+                <h2 class="sec-label mb-4">
+                    <i class="fa-solid fa-arrows-rotate mr-2" style="color:var(--sand)"></i> Calculadora de Conversión
+                </h2>
+                <div class="space-y-3">
+                    <div class="card-inner p-4" style="border-color:rgba(30,104,64,0.3);">
+                        <label style="display:block; font-size:0.6rem; font-weight:800; text-transform:uppercase; color:#1f6b37; margin-bottom:0.5rem; letter-spacing:0.08em;">Dólares ($)</label>
+                        <div class="flex items-center gap-2">
+                            <div class="relative flex-1">
+                                <span class="absolute left-3 top-1/2 -translate-y-1/2 font-black text-base" style="color:#1f6b37;">$</span>
+                                <input type="number" step="0.01" id="calc-usd" placeholder="0.00"
+                                    class="inp w-full pl-7 pr-3 py-3 text-xl font-black"
+                                    oninput="calcUsdToBs()">
+                            </div>
+                            <button onclick="copiarValor('calc-usd')" title="Copiar $"
+                                class="btn-green flex-shrink-0 p-3 rounded-lg">
+                                <i class="fa-regular fa-copy"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-2 px-2">
+                        <div class="flex-1 h-px" style="background:var(--border);"></div>
+                        <div class="rounded-full p-2 flex items-center justify-center" style="background:var(--cream2); border:1.5px solid var(--border2);">
+                            <i class="fa-solid fa-arrows-up-down text-sm" style="color:var(--gold);"></i>
+                        </div>
+                        <div class="flex-1 h-px" style="background:var(--border);"></div>
+                    </div>
+
+                    <div class="card-inner p-4" style="border-color:rgba(184,145,47,0.35);">
+                        <label style="display:block; font-size:0.6rem; font-weight:800; text-transform:uppercase; color:var(--gold); margin-bottom:0.5rem; letter-spacing:0.08em;">Bolívares (Bs.)</label>
+                        <div class="flex items-center gap-2">
+                            <div class="relative flex-1">
+                                <span class="absolute left-3 top-1/2 -translate-y-1/2 font-black text-sm" style="color:var(--gold);">Bs</span>
+                                <input type="number" step="0.01" id="calc-bs" placeholder="0.00"
+                                    class="inp w-full pl-9 pr-3 py-3 text-xl font-black"
+                                    oninput="calcBsToUsd()">
+                            </div>
+                            <button onclick="copiarValor('calc-bs')" title="Copiar Bs."
+                                class="btn-gold flex-shrink-0 p-3 rounded-lg">
+                                <i class="fa-regular fa-copy"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-center pt-1">
+                        <span style="font-size:0.62rem; color:var(--text3); background:var(--cream2); padding:0.4rem 1rem; border-radius:99px; border:1px solid var(--border);">
+                            Tasa activa: <span id="calc-tasa-ref" style="color:var(--gold); font-weight:900;">0,00</span> Bs/$
+                        </span>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════
+         TAB 6: DIVISAS COMPRADAS (Cambistas)
+    ══════════════════════════════════════════ -->
+    <div id="tab-divisas" class="tab-panel">
+        <div class="tab-header">
+            <span class="tab-header-text" style="color:#5b21b6;">
+                <i class="fa-solid fa-handshake mr-1.5" style="color:#7c3aed;"></i>Divisas Compradas · Cambistas
+            </span>
+        </div>
+        <div class="px-3 pt-3 space-y-3">
+
+            <!-- KPI CARDS -->
+            <div class="grid grid-cols-2 gap-2.5">
+
+                <!-- KPI: Pendiente por buscar -->
+                <div class="div-kpi-card kpi-retiro">
+                    <div class="flex items-center gap-1.5 mb-1.5">
+                        <div style="width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,#7c3aed,#a855f7);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                            <i class="fa-solid fa-clock text-white" style="font-size:0.6rem;"></i>
+                        </div>
+                        <span style="font-size:0.52rem;font-weight:900;text-transform:uppercase;letter-spacing:0.1em;color:#5b21b6;">Pend. por buscar</span>
+                    </div>
+                    <div id="div-kpi-pendiente-usd" style="font-size:1.25rem;font-weight:900;color:var(--text);font-family:'JetBrains Mono',monospace;line-height:1;">$0,00</div>
+                    <div style="font-size:0.58rem;color:#7c3aed;margin-top:0.2rem;font-weight:700;">en divisas sin retirar</div>
+                </div>
+
+                <!-- KPI: Total que debo -->
+                <div class="div-kpi-card kpi-deuda">
+                    <div class="flex items-center gap-1.5 mb-1.5">
+                        <div style="width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,#dc2626,#f59e0b);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                            <i class="fa-solid fa-triangle-exclamation text-white" style="font-size:0.6rem;"></i>
+                        </div>
+                        <span style="font-size:0.52rem;font-weight:900;text-transform:uppercase;letter-spacing:0.1em;color:#92400e;">Total que debo</span>
+                    </div>
+                    <div id="div-kpi-debo-bs" style="font-size:0.88rem;font-weight:900;color:#dc2626;font-family:'JetBrains Mono',monospace;line-height:1;">0,00 Bs.</div>
+                    <div id="div-kpi-debo-usd" style="font-size:0.65rem;color:#92400e;font-weight:800;font-family:'JetBrains Mono',monospace;">≈ $0,00</div>
+                </div>
+
+            </div>
+
+            <!-- FORMULARIO + BOTÓN REGISTRAR -->
+            <section class="card p-4" style="border-left:3.5px solid #7c3aed;">
+                <div class="flex justify-between items-center mb-3">
+                    <h2 class="sec-label" style="color:#5b21b6;">
+                        <i class="fa-solid fa-handshake mr-2" style="color:#7c3aed;"></i>Compras de Divisas
+                    </h2>
+                    <button onclick="divToggleForm()" class="btn-ghost px-3 py-1.5" style="font-size:0.65rem;border-color:#c4b5fd;color:#5b21b6;">
+                        <i class="fa-solid fa-plus mr-1" style="color:#7c3aed;"></i> Registrar Compra
+                    </button>
+                </div>
+
+                <!-- Formulario colapsable -->
+                <div id="div-form" class="hidden form-collapse p-3.5 mb-4 space-y-3">
+                    <h3 style="font-size:0.7rem;font-weight:800;color:#5b21b6;text-transform:uppercase;letter-spacing:0.08em;">
+                        <i class="fa-solid fa-file-invoice-dollar mr-1"></i> Nueva Compra de Divisa
+                    </h3>
+
+                    <!-- Cambista + Fecha -->
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="block mb-0.5" style="font-size:0.6rem;font-weight:700;color:var(--text3);">Nombre del Cambista</label>
+                            <input type="text" id="div-cambista" placeholder="Ej. Juan, Ramona..."
+                                class="inp w-full text-xs p-2">
+                        </div>
+                        <div>
+                            <label class="block mb-0.5" style="font-size:0.6rem;font-weight:700;color:var(--text3);">Fecha de Compra</label>
+                            <input type="date" id="div-fecha" class="inp w-full text-xs p-2">
+                        </div>
+                    </div>
+
+                    <!-- Monto + Tasa -->
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="block mb-0.5" style="font-size:0.6rem;font-weight:700;color:var(--text3);">Monto Comprado ($)</label>
+                            <div class="relative">
+                                <span class="absolute left-2.5 top-1/2 -translate-y-1/2 font-black text-sm" style="color:var(--green-m);">$</span>
+                                <input type="number" step="0.01" id="div-monto-usd" placeholder="0.00"
+                                    class="inp w-full pl-6 pr-2 text-xs p-2 font-black"
+                                    oninput="divPreviewBs()">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block mb-0.5" style="font-size:0.6rem;font-weight:700;color:var(--text3);">Tasa Pactada (Bs/$)</label>
+                            <div class="relative">
+                                <input type="number" step="0.01" id="div-tasa" placeholder="Tasa Bs/$"
+                                    class="inp w-full pr-8 text-xs p-2 font-black"
+                                    oninput="divPreviewBs()">
+                                <span class="absolute right-2.5 top-1/2 -translate-y-1/2 text-[9px] font-bold" style="color:var(--gold);">Bs</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Preview total Bs en tiempo real -->
+                    <div id="div-preview-container" class="div-preview-bs" style="display:none;">
+                        <div>
+                            <span style="font-size:0.55rem;font-weight:800;color:#5b21b6;text-transform:uppercase;letter-spacing:0.08em;display:block;margin-bottom:0.1rem;">Total a pagar en Bs.</span>
+                            <span id="div-preview-bs-val" style="font-size:1.1rem;font-weight:900;color:#5b21b6;font-family:'JetBrains Mono',monospace;">0,00 Bs.</span>
+                        </div>
+                        <div class="text-right">
+                            <span style="font-size:0.55rem;color:#7c3aed;font-weight:700;display:block;">por</span>
+                            <span id="div-preview-usd-val" style="font-size:0.75rem;font-weight:900;color:var(--green-m);font-family:'JetBrains Mono',monospace;">$0,00</span>
+                        </div>
+                    </div>
+
+                    <!-- Estado de Pago -->
+                    <div>
+                        <label class="block mb-1" style="font-size:0.6rem;font-weight:800;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em;">¿Estado del Pago? (¿ya pagué los Bs.?)</label>
+                        <div class="grid grid-cols-2 gap-2">
+                            <label class="div-estado-opt" id="opt-pago-pagado" onclick="divSelectEstado('pago','pagado')">
+                                <input type="radio" name="div-estado-pago" value="pagado">
+                                <i class="fa-solid fa-check-circle" style="color:#22c55e;font-size:0.8rem;"></i>
+                                <span>Ya Pagué</span>
+                            </label>
+                            <label class="div-estado-opt sel-debo" id="opt-pago-pendiente" onclick="divSelectEstado('pago','pendiente')">
+                                <input type="radio" name="div-estado-pago" value="pendiente" checked>
+                                <i class="fa-solid fa-hourglass-half" style="color:#f59e0b;font-size:0.8rem;"></i>
+                                <span>Debo / Pendiente</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Estado de Retiro -->
+                    <div>
+                        <label class="block mb-1" style="font-size:0.6rem;font-weight:800;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em;">¿Estado del Retiro? (¿ya tengo las divisas?)</label>
+                        <div class="grid grid-cols-2 gap-2">
+                            <label class="div-estado-opt" id="opt-retiro-retirado" onclick="divSelectEstado('retiro','retirado')">
+                                <input type="radio" name="div-estado-retiro" value="retirado">
+                                <i class="fa-solid fa-money-bills" style="color:#3b82f6;font-size:0.8rem;"></i>
+                                <span>Ya Retiré</span>
+                            </label>
+                            <label class="div-estado-opt sel-pendret" id="opt-retiro-pendiente" onclick="divSelectEstado('retiro','pendiente')">
+                                <input type="radio" name="div-estado-retiro" value="pendiente" checked>
+                                <i class="fa-solid fa-location-dot" style="color:#a855f7;font-size:0.8rem;"></i>
+                                <span>Por Buscar</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-end gap-2 pt-1">
+                        <button onclick="divToggleForm()" class="btn-ghost px-3 py-1.5" style="font-size:0.65rem;">Cancelar</button>
+                        <button onclick="divGuardarCompra()" class="btn-gold px-4 py-1.5" style="font-size:0.65rem;background:linear-gradient(135deg,#7c3aed,#6d28d9);box-shadow:0 2px 8px rgba(124,58,237,0.35);">
+                            <i class="fa-solid fa-floppy-disk mr-1"></i> Guardar Compra
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Historial de compras -->
+                <div>
+                    <p class="sec-label mb-2" style="color:var(--text2);">
+                        <i class="fa-solid fa-folder-tree mr-1" style="color:#7c3aed;"></i> Historial de Compras
+                    </p>
+                    <div id="div-historial-container" class="space-y-2"></div>
+                </div>
+            </section>
+
+        </div>
+    </div>
+
+</div><!-- /#app-main -->
+
+<!-- ═══════════════ BOTTOM TAB NAV ═══════════════ -->
+<nav id="tab-nav">
+    <div class="max-w-md mx-auto flex">
+        <button class="tab-btn active" data-tab="inicio" onclick="switchTab('inicio')">
+            <span class="tab-icon"><i class="fa-solid fa-vault"></i></span>
+            <span class="tab-label">Inicio</span>
+        </button>
+        <button class="tab-btn" data-tab="ingresos" onclick="switchTab('ingresos')">
+            <span class="tab-icon"><i class="fa-solid fa-chart-line"></i></span>
+            <span class="tab-label">Ingresos</span>
+        </button>
+        <button class="tab-btn" data-tab="obligaciones" onclick="switchTab('obligaciones')">
+            <span class="tab-icon"><i class="fa-solid fa-scale-balanced"></i></span>
+            <span class="tab-label">Cuentas</span>
+        </button>
+        <button class="tab-btn" data-tab="deudores" onclick="switchTab('deudores')">
+            <span class="tab-icon"><i class="fa-solid fa-hand-holding-dollar"></i></span>
+            <span class="tab-label">Deudores</span>
+        </button>
+        <button class="tab-btn" data-tab="herramientas" onclick="switchTab('herramientas')">
+            <span class="tab-icon"><i class="fa-solid fa-calculator"></i></span>
+            <span class="tab-label">Tools</span>
+        </button>
+        <button class="tab-btn" data-tab="divisas" onclick="switchTab('divisas')">
+            <span class="tab-icon"><i class="fa-solid fa-handshake"></i></span>
+            <span class="tab-label">Divisas</span>
+        </button>
+    </div>
+</nav>
+
+<!-- ═══════════════ MODAL ABONO DEUDA ═══════════════ -->
+<div id="modal-abono-overlay">
+    <div id="modal-abono-box">
+        <div class="mb-4">
+            <p style="font-size:0.6rem; font-weight:800; text-transform:uppercase; letter-spacing:0.12em; color:var(--gold); margin-bottom:0.3rem;">Registrar Abono</p>
+            <h3 id="modal-abono-titulo" style="font-size:1rem; font-weight:900; color:var(--text); font-family:'JetBrains Mono',monospace; line-height:1.2;"></h3>
+        </div>
+        <div class="mb-1">
+            <label style="display:block; font-size:0.6rem; font-weight:800; text-transform:uppercase; letter-spacing:0.08em; color:var(--text3); margin-bottom:0.4rem;">¿Cuánto deseas abonar ($)?</label>
+            <div class="relative">
+                <span class="absolute left-3 top-1/2 -translate-y-1/2 font-black" style="color:var(--gold);">$</span>
+                <input type="number" step="0.01" id="modal-abono-monto" placeholder="0.00"
+                    class="inp w-full pl-7 pr-3 py-3 text-xl font-black"
+                    style="color:var(--gold);"
+                    oninput="actualizarPreviewAbono()">
+            </div>
+        </div>
+        <div id="modal-abono-preview" style="margin:0.5rem 0 1rem; font-size:0.68rem; font-family:'JetBrains Mono',monospace; color:var(--muted); min-height:18px;"></div>
+        <div class="flex gap-2">
+            <button onclick="cerrarModalAbono()" class="btn-ghost flex-1 py-2" style="font-size:0.7rem;">Cancelar</button>
+            <button onclick="confirmarAbono()" class="btn-gold flex-1 py-2" style="font-size:0.7rem;">
+                <i class="fa-solid fa-check mr-1"></i> Confirmar
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════ MODAL ABONO DEUDOR ═══════════════ -->
+<div id="modal-deudor-overlay">
+    <div id="modal-deudor-box">
+        <div class="mb-4">
+            <p style="font-size:0.6rem; font-weight:800; text-transform:uppercase; letter-spacing:0.12em; color:var(--green-m); margin-bottom:0.3rem;">
+                <i class="fa-solid fa-hand-holding-dollar mr-1"></i> Registrar Abono Recibido
+            </p>
+            <h3 id="modal-deudor-titulo" style="font-size:0.9rem; font-weight:900; color:var(--text); font-family:'JetBrains Mono',monospace; line-height:1.3;"></h3>
+            <p style="font-size:0.62rem; color:var(--muted); margin-top:0.25rem;">
+                Saldo actual: <span id="modal-deudor-saldo-usd" style="color:var(--green-m); font-weight:900;"></span>
+                &nbsp;/&nbsp; <span id="modal-deudor-saldo-bs" style="color:var(--gold); font-weight:900;"></span>
+            </p>
+        </div>
+        <div class="mb-3">
+            <label style="display:block; font-size:0.6rem; font-weight:800; text-transform:uppercase; letter-spacing:0.08em; color:var(--text3); margin-bottom:0.4rem;">Moneda del abono</label>
+            <div class="grid grid-cols-2 gap-2">
+                <label class="radio-opt">
+                    <input type="radio" name="abono-deudor-moneda" value="usd" checked onchange="actualizarModalDeudor()">
+                    <i class="fa-solid fa-dollar-sign mr-1" style="color:var(--green-m);"></i> Dólares ($)
+                </label>
+                <label class="radio-opt">
+                    <input type="radio" name="abono-deudor-moneda" value="bs" onchange="actualizarModalDeudor()">
+                    <i class="fa-solid fa-building-columns mr-1" style="color:var(--gold);"></i> Bs.
+                </label>
+            </div>
+        </div>
+        <div class="mb-1">
+            <label id="modal-deudor-label-monto" style="display:block; font-size:0.6rem; font-weight:800; text-transform:uppercase; letter-spacing:0.08em; color:var(--text3); margin-bottom:0.4rem;">¿Cuánto abonó ($)?</label>
+            <div class="relative">
+                <span id="modal-deudor-prefijo" class="absolute left-3 top-1/2 -translate-y-1/2 font-black text-sm" style="color:var(--green-m);">$</span>
+                <input type="number" step="0.01" id="modal-deudor-monto" placeholder="0.00"
+                    class="inp w-full pl-7 pr-3 py-3 text-xl font-black"
+                    style="color:var(--green-m);"
+                    oninput="actualizarPreviewDeudor()">
+            </div>
+        </div>
+        <div id="modal-deudor-preview" style="margin:0.5rem 0 1rem; font-size:0.68rem; font-family:'JetBrains Mono',monospace; color:var(--muted); min-height:18px;"></div>
+        <div id="aviso-bcv-abono-deudor" class="hidden mb-3 aviso-bcv">
+            <i class="fa-solid fa-triangle-exclamation mr-1"></i>
+            Ingresa el monto en <strong>Bs.</strong>. Se convertirá a $ usando la tasa BCV activa.
+        </div>
+        <div class="flex gap-2">
+            <button onclick="cerrarModalDeudor()" class="btn-ghost flex-1 py-2" style="font-size:0.7rem;">Cancelar</button>
+            <button onclick="confirmarAbonoDeudor()" class="btn-green flex-1 py-2" style="font-size:0.7rem;">
+                <i class="fa-solid fa-check mr-1"></i> Confirmar
+            </button>
+        </div>
+    </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ════════════════════════════════════════════════════════════════════════════════
+// ── NAVEGACIÓN POR PESTAÑAS ──────────────────────────────────────────────────
+// ════════════════════════════════════════════════════════════════════════════════
+
+function switchTab(tabId) {
+    document.querySelectorAll('.tab-panel').forEach(function(panel) {
+        panel.classList.remove('active');
+    });
+    document.querySelectorAll('.tab-btn').forEach(function(btn) {
+        btn.classList.remove('active');
+    });
+    var panel = document.getElementById('tab-' + tabId);
+    if (panel) panel.classList.add('active');
+    var btn = document.querySelector('.tab-btn[data-tab="' + tabId + '"]');
+    if (btn) btn.classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+</script>
+<script>
+// ════════════════════════════════════════════════════════════════════════════════
+// ── ESTADO GLOBAL ────────────────────────────────────────────────────────────
+// ════════════════════════════════════════════════════════════════════════════════
+
+let deudas            = JSON.parse(localStorage.getItem('mthori_deudas'))                   || [];
+let historial         = JSON.parse(localStorage.getItem('mthori_historial_abonos'))         || [];
+let ingresos          = JSON.parse(localStorage.getItem('mthori_ingresos'))                 || [];
+let deudores          = JSON.parse(localStorage.getItem('mthori_deudores'))                 || [];
+let historialDeudores = JSON.parse(localStorage.getItem('mthori_hist_deudores'))            || [];
+let balanceBancos     = JSON.parse(localStorage.getItem('mthori_balance_bancos'))           || [];
+let comprasDivisas    = JSON.parse(localStorage.getItem('mthori_compras_divisas'))          || [];
+let historicoMensual  = JSON.parse(localStorage.getItem('mthori_historico_mensual_ingresos')) || [];
+let balanceOtros      = JSON.parse(localStorage.getItem('mthori_balance_otros'))            || {
+    zelle: 0, binance: 0, binanceTasa: 0, efectivo: 0
+};
+
+let _modalDeudaId  = null;
+let _modalDeudorId = null;
+let _chartIngresos = null;
+
+// Fecha en navbar
+document.getElementById('current-date').innerText = new Date().toLocaleDateString('es-VE', {
+    weekday: 'short', day: 'numeric', month: 'short'
+});
+
+// Fecha por defecto en formulario de ingreso (hoy)
+(function setFechaHoy() {
+    const d = new Date();
+    const iso = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+    document.getElementById('ing-fecha').value = iso;
+})();
+
+// ════════════════════════════════════════════════════════════════════════════════
+// ── CIERRE Y REINICIO MENSUAL AUTOMÁTICO ─────────────────────────────────────
+// ════════════════════════════════════════════════════════════════════════════════
+
+function verificarCierreMensual() {
+    if (!ingresos || ingresos.length === 0) return;
+
+    const ahora    = new Date();
+    const mesActual = ahora.getMonth();     // 0-11
+    const anioActual = ahora.getFullYear();
+
+    // Revisar el ingreso más reciente en el array activo
+    const ingresosOrdenados = [...ingresos].sort((a, b) => b.timestamp - a.timestamp);
+    const masReciente = ingresosOrdenados[0];
+    if (!masReciente) return;
+
+    const fechaUltimo  = new Date(masReciente.timestamp);
+    const mesUltimo    = fechaUltimo.getMonth();
+    const anioUltimo   = fechaUltimo.getFullYear();
+
+    // Si el mes actual es posterior al mes del último ingreso → cierre
+    const esNuevoMes = (anioActual > anioUltimo) ||
+                       (anioActual === anioUltimo && mesActual > mesUltimo);
+
+    if (!esNuevoMes) return;
+
+    // Calcular total del mes saliente
+    const totalMesSaliente = ingresos
+        .filter(i => {
+            const d = new Date(i.timestamp);
+            return d.getMonth() === mesUltimo && d.getFullYear() === anioUltimo;
+        })
+        .reduce((s, i) => s + (i.montoUsd || 0), 0);
+
+    const nombreMesSaliente = new Date(anioUltimo, mesUltimo, 1)
+        .toLocaleDateString('es-VE', { month: 'long', year: 'numeric' });
+    const mesAnioLabel = nombreMesSaliente.charAt(0).toUpperCase() + nombreMesSaliente.slice(1);
+
+    // Guardar en histórico mensual
+    const yaExiste = historicoMensual.some(h => h.mesAnio === mesAnioLabel);
+    if (!yaExiste) {
+        historicoMensual.unshift({ mesAnio: mesAnioLabel, totalGanado: totalMesSaliente, fechaCierre: new Date().toISOString() });
+        localStorage.setItem('mthori_historico_mensual_ingresos', JSON.stringify(historicoMensual));
+    }
+
+    // Vaciar array activo (nuevo mes limpio)
+    ingresos = [];
+    localStorage.setItem('mthori_ingresos', JSON.stringify(ingresos));
+
+    mostrarToast('🔄 Mes cerrado: ' + mesAnioLabel + ' ($' + fmtComa(totalMesSaliente) + ' archivado)');
+}
+
+
+// ════════════════════════════════════════════════════════════════════════════════
+// ── MÓDULO: API BCV Y FORMATOS ───────────────────────────────────────────────
+// ════════════════════════════════════════════════════════════════════════════════
+
+function todayStr() {
+    const d = new Date();
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+
+function setBCVStatus(state, msg) {
+    document.getElementById('bcv-status-text').innerText = msg;
+    document.getElementById('bcv-dot').className = 'inline-block w-2 h-2 rounded-full ' + (
+        state === 'ok'    ? 'bg-green-500' :
+        state === 'error' ? 'bg-red-400'   : 'bg-amber-400 animate-pulse'
+    );
+}
+
+async function fetchBCVRate(forceRefresh) {
+    const KEY_RATE = 'mthori_bcv_rate', KEY_DATE = 'mthori_bcv_date';
+    if (!forceRefresh) {
+        const cd = localStorage.getItem(KEY_DATE);
+        const cr = parseFloat(localStorage.getItem(KEY_RATE));
+        if (cd === todayStr() && !isNaN(cr) && cr > 0) {
+            applyBCVRate(cr);
+            setBCVStatus('ok', 'Tasa del día (' + cd + ') • ' + fmtBs(cr) + ' Bs/$');
+            return;
+        }
+    }
+    setBCVStatus('loading', 'Consultando tasa BCV...');
+
+    const endpoints = [
+        { url: 'https://ve.dolarapi.com/v1/dolares/oficial', parser: data => {
+            if (data && typeof data === 'object' && !Array.isArray(data)) {
+                const r = parseFloat(data.promedio ?? data.venta ?? data.precio);
+                if (!isNaN(r) && r > 10) return r;
+            }
+            return null;
+        }},
+        { url: 'https://ve.dolarapi.com/v1/dolares', parser: data => {
+            if (Array.isArray(data)) {
+                const obj = data.find(d =>
+                    (d.fuente && d.fuente.toUpperCase() === 'BCV') ||
+                    (d.nombre && /oficial/i.test(d.nombre))
+                );
+                if (obj) {
+                    const r = parseFloat(obj.promedio ?? obj.venta ?? obj.precio);
+                    if (!isNaN(r) && r > 10) return r;
+                }
+            }
+            return null;
+        }},
+        { url: 'https://pydolarve.org/api/v1/dollar?monitor=bcv', parser: data => {
+            if (data) {
+                const r = parseFloat(data.price ?? data.promedio ?? data.venta);
+                if (!isNaN(r) && r > 10) return r;
+            }
+            return null;
+        }}
+    ];
+
+    for (const ep of endpoints) {
+        try {
+            const res = await fetch(ep.url, {
+                signal: AbortSignal.timeout(9000),
+                headers: { 'Accept': 'application/json' }
+            });
+            if (!res.ok) continue;
+            const data = await res.json();
+            const rate = ep.parser(data);
+            if (!rate) continue;
+            localStorage.setItem(KEY_RATE, rate);
+            localStorage.setItem(KEY_DATE, todayStr());
+            applyBCVRate(rate);
+            setBCVStatus('ok', '✓ BCV actualizado ' + todayStr() + ' • ' + fmtBs(rate) + ' Bs/$');
+            return;
+        } catch(e) { /* intentar siguiente endpoint */ }
+    }
+
+    const oldRate = parseFloat(localStorage.getItem('mthori_bcv_rate'));
+    const oldDate = localStorage.getItem('mthori_bcv_date') || '—';
+    if (!isNaN(oldRate) && oldRate > 0) {
+        applyBCVRate(oldRate);
+        setBCVStatus('error', 'Sin conexión – última: ' + oldDate + ' • ' + fmtBs(oldRate) + ' Bs/$');
+    } else {
+        setBCVStatus('error', 'Sin conexión – ingresa la tasa manualmente');
+    }
+}
+
+// fmtBs — formato venezolano con coma decimal y punto de miles.
+function fmtBs(valor, decimales = 2) {
+    if (isNaN(valor) || valor === null || valor === undefined) return '0,00';
+    const n = Number(valor);
+    if (isNaN(n)) return '0,00';
+    return n.toLocaleString('es-VE', {
+        minimumFractionDigits: decimales,
+        maximumFractionDigits: decimales
+    });
+}
+
+// fmtComa — alias de fmtBs para montos en $
+function fmtComa(valor, dec = 2) {
+    if (isNaN(valor) || valor == null || valor === undefined) return '0,00';
+    const n = Number(valor);
+    if (isNaN(n)) return '0,00';
+    return n.toLocaleString('es-VE', {
+        minimumFractionDigits: dec,
+        maximumFractionDigits: dec
+    });
+}
+
+// fmtBsCopy — formato para pegar en BDV: sin separador de miles, coma decimal.
+function fmtBsCopy(valor, decimales = 2) {
+    const n = Number(valor);
+    if (isNaN(n)) return '0,00';
+    return n.toFixed(decimales).replace('.', ',');
+}
+
+function applyBCVRate(rate) {
+    document.getElementById('tasa-bcv').value = rate.toFixed(2);
+    localStorage.setItem('mthori_tasa_bcv', rate.toFixed(2));
+    calcularTodo();
+}
+
+function onTasaManual() {
+    const v = parseFloat(document.getElementById('tasa-bcv').value);
+    if (!isNaN(v) && v > 0) {
+        localStorage.setItem('mthori_tasa_bcv', v.toFixed(2));
+        localStorage.setItem('mthori_bcv_rate', v.toFixed(2));
+        localStorage.setItem('mthori_bcv_date', todayStr());
+        setBCVStatus('ok', 'Tasa ingresada manualmente • ' + fmtBs(v) + ' Bs/$');
+    }
+    calcularTodo();
+}
+
+// Auto-fetch al cargar (sin forzar)
+fetchBCVRate(false);
+
+
+// ════════════════════════════════════════════════════════════════════════════════
+// ── MÓDULO: CALCULADORA Y PORTAPAPELES ──────────────────────────────────────
+// ════════════════════════════════════════════════════════════════════════════════
+
+function calcUsdToBs() {
+    const tasa = parseFloat(document.getElementById('tasa-bcv').value) || 0;
+    const usd  = parseFloat(document.getElementById('calc-usd').value);
+    document.getElementById('calc-bs').value = (!isNaN(usd) && tasa > 0) ? (usd * tasa).toFixed(2) : '';
+}
+
+function calcBsToUsd() {
+    const tasa = parseFloat(document.getElementById('tasa-bcv').value) || 0;
+    const bs   = parseFloat(document.getElementById('calc-bs').value);
+    document.getElementById('calc-usd').value = (!isNaN(bs) && tasa > 0) ? (bs / tasa).toFixed(2) : '';
+}
+
+function copiarValor(inputId) {
+    const el = document.getElementById(inputId);
+    if (!el || el.value === '' || el.value == null) { mostrarToast('⚠ No hay valor para copiar'); return; }
+    let val = String(el.value).trim();
+    if (inputId === 'calc-bs') {
+        const num = parseFloat(val);
+        val = isNaN(num) ? val : fmtBsCopy(num);
+    }
+    if (!val) { mostrarToast('⚠ No hay valor para copiar'); return; }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(val)
+            .then(() => mostrarToast('✓ Copiado: ' + val))
+            .catch(() => copiarFallback(val));
+    } else {
+        copiarFallback(val);
+    }
+}
+
+function copiarFallback(texto) {
+    try {
+        const ta = document.createElement('textarea');
+        ta.value = texto;
+        ta.style.cssText = 'position:fixed;top:-9999px;left:-9999px;opacity:0';
+        document.body.appendChild(ta);
+        ta.focus(); ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        mostrarToast('✓ Copiado: ' + texto);
+    } catch(e) {
+        mostrarToast('⚠ No se pudo copiar');
+    }
+}
+
+function mostrarToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+
+// ════════════════════════════════════════════════════════════════════════════════
+// ── MÓDULO: CUENTAS POR PAGAR & ABONOS ──────────────────────────────────────
+// ════════════════════════════════════════════════════════════════════════════════
+
+function toggleForm() {
+    document.getElementById('deuda-form').classList.toggle('hidden');
+}
+
+function agregarDeuda() {
+    const nombre   = document.getElementById('nueva-deuda-nombre').value.trim();
+    const monto    = parseFloat(document.getElementById('nueva-deuda-monto').value);
+    const tipoTasa = document.querySelector('input[name="tipo-tasa"]:checked').value;
+    if (!nombre || isNaN(monto) || monto <= 0) { alert('Por favor ingresa datos válidos.'); return; }
+    deudas.push({ id: Date.now(), nombre, montoUsd: monto, tipoTasa });
+    localStorage.setItem('mthori_deudas', JSON.stringify(deudas));
+    document.getElementById('nueva-deuda-nombre').value = '';
+    document.getElementById('nueva-deuda-monto').value  = '';
+    toggleForm();
+    calcularTodo();
+}
+
+function eliminarDeuda(id) {
+    if (confirm('¿Deseas borrar esta cuenta?')) {
+        deudas = deudas.filter(d => d.id !== id);
+        localStorage.setItem('mthori_deudas', JSON.stringify(deudas));
+        calcularTodo();
+    }
+}
+
+function abonarDeuda(id) {
+    const deuda = deudas.find(d => d.id === id);
+    if (!deuda) return;
+    _modalDeudaId = id;
+    document.getElementById('modal-abono-titulo').textContent = '"' + deuda.nombre + '"';
+    document.getElementById('modal-abono-monto').value = '';
+    document.getElementById('modal-abono-preview').textContent = '';
+    document.getElementById('modal-abono-overlay').classList.add('active');
+    setTimeout(() => document.getElementById('modal-abono-monto').focus(), 100);
+}
+
+function cerrarModalAbono() {
+    document.getElementById('modal-abono-overlay').classList.remove('active');
+    _modalDeudaId = null;
+}
+
+function actualizarPreviewAbono() {
+    const tasa  = parseFloat(document.getElementById('tasa-bcv').value) || 0;
+    const monto = parseFloat(document.getElementById('modal-abono-monto').value);
+    const prev  = document.getElementById('modal-abono-preview');
+    prev.textContent = (!isNaN(monto) && monto > 0 && tasa > 0)
+        ? '≈ ' + fmtBs(monto * tasa) + ' Bs. a tasa ' + fmtBs(tasa)
+        : '';
+}
+
+function confirmarAbono() {
+    const monto = parseFloat(document.getElementById('modal-abono-monto').value);
+    if (isNaN(monto) || monto <= 0) { alert('Ingresa un monto válido.'); return; }
+    const deuda = deudas.find(d => d.id === _modalDeudaId);
+    if (!deuda) return;
+    const tasa  = parseFloat(document.getElementById('tasa-bcv').value) || 0;
+    const ahora = new Date();
+    const registro = {
+        id: Date.now(), timestamp: ahora.getTime(),
+        fecha: ahora.toLocaleDateString('es-VE', { day:'numeric', month:'short', year:'numeric' }) + ' ' +
+               ahora.toLocaleTimeString('es-VE', { hour:'2-digit', minute:'2-digit' }),
+        nombreDeuda: deuda.nombre, tipoTasa: deuda.tipoTasa,
+        montoUsd: monto, montoBs: monto * tasa, tasaBcv: tasa
+    };
+    historial.unshift(registro);
+    localStorage.setItem('mthori_historial_abonos', JSON.stringify(historial));
+    if (monto >= deuda.montoUsd) {
+        deudas = deudas.filter(d => d.id !== _modalDeudaId);
+        mostrarToast('✓ Cuenta "' + deuda.nombre + '" saldada y archivada');
+    } else {
+        deuda.montoUsd -= monto;
+        mostrarToast('✓ Abono de $' + monto.toFixed(2) + ' registrado');
+    }
+    localStorage.setItem('mthori_deudas', JSON.stringify(deudas));
+    cerrarModalAbono();
+    calcularTodo();
+}
+
+document.getElementById('modal-abono-overlay').addEventListener('click', function(e) {
+    if (e.target === this) cerrarModalAbono();
+});
+
+// ── Historial mensual de abonos (carpetas colapsables) ──
+function badgeMetodoAbono(tipo) {
+    const m = { efectivo:'badge badge-efectivo', zelle:'badge badge-zelle', bcv:'badge badge-bcv', usdt:'badge badge-usdt' };
+    const l = { efectivo:'Efectivo', zelle:'Zelle', bcv:'BCV', usdt:'USDT' };
+    return `<span class="${m[tipo]||'badge'}">${l[tipo]||tipo}</span>`;
+}
+
+function renderHistorialMensual() {
+    const contenedor = document.getElementById('historial-meses-container');
+    contenedor.innerHTML = '';
+    if (historial.length === 0) {
+        contenedor.innerHTML = '<div class="text-center text-xs text-gray-400 py-4 font-mono">No hay abonos registrados todavía</div>';
+        return;
+    }
+    const grupos = {};
+    historial.forEach(h => {
+        const dateObj   = new Date(h.timestamp);
+        const nombreMes = dateObj.toLocaleDateString('es-VE', { month:'long' });
+        const anio      = dateObj.getFullYear();
+        const key       = `${nombreMes}_${anio}`;
+        const label     = nombreMes.charAt(0).toUpperCase() + nombreMes.slice(1) + ' ' + anio;
+        if (!grupos[key]) grupos[key] = { label, items:[], totalUsd:0 };
+        grupos[key].items.push(h);
+        grupos[key].totalUsd += (h.montoUsd || 0);
+    });
+    Object.keys(grupos).forEach(key => {
+        const grupo = grupos[key];
+        const itemsHtml = grupo.items.map(h => `
+            <div class="hist-item p-2.5 flex justify-between items-start gap-2">
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-center gap-1.5 flex-wrap mb-0.5">
+                        <span class="text-xs font-black" style="color:var(--text)">${h.nombreDeuda}</span>
+                        ${badgeMetodoAbono(h.tipoTasa)}
+                    </div>
+                    <span style="font-size:0.62rem;color:var(--muted);font-family:'JetBrains Mono',monospace;">
+                        <i class="fa-regular fa-clock mr-0.5"></i>${h.fecha}
+                        &nbsp;·&nbsp; Tasa: <span style="color:var(--text3);font-weight:700;">${fmtBs(h.tasaBcv)} Bs/$</span>
+                    </span>
+                </div>
+                <div class="text-right flex-shrink-0">
+                    <span class="text-sm font-black font-mono block" style="color:var(--text);">$${fmtComa(h.montoUsd)}</span>
+                    <span style="font-size:0.65rem;color:var(--gold);font-weight:700;font-family:'JetBrains Mono',monospace;display:block;">${fmtBs(h.montoBs)} Bs.</span>
+                </div>
+                <button onclick="eliminarRegistroHistorial(${h.id})" class="text-gray-300 hover:text-red-500 flex-shrink-0 mt-0.5">
+                    <i class="fa-solid fa-trash text-[10px]"></i>
+                </button>
+            </div>`).join('');
+        const div = document.createElement('div');
+        div.className = 'card overflow-hidden';
+        div.innerHTML = `
+            <div class="folder-header flex justify-between items-center" onclick="toggleCarpetaMes('abono_${key}')">
+                <span class="sec-label flex items-center" style="color:var(--text2);">
+                    <i id="icono-carpeta-abono_${key}" class="fa-solid fa-folder text-indigo-400 mr-2 text-sm"></i> ${grupo.label}
+                </span>
+                <div class="flex items-center gap-2">
+                    <span class="badge badge-zelle">${grupo.items.length} abonos</span>
+                    <span style="font-size:0.6rem;background:#fef9c3;color:#854d0e;font-weight:900;padding:0.15rem 0.5rem;border-radius:99px;font-family:'JetBrains Mono',monospace;">$${fmtComa(grupo.totalUsd)}</span>
+                </div>
+            </div>
+            <div id="carpeta-contenido-abono_${key}" class="hidden folder-body p-2 space-y-1.5">
+                ${itemsHtml}
+            </div>`;
+        contenedor.appendChild(div);
+    });
+}
+
+function toggleCarpetaMes(key) {
+    const el    = document.getElementById(`carpeta-contenido-${key}`);
+    const icono = document.getElementById(`icono-carpeta-${key}`);
+    if (!el) return;
+    el.classList.toggle('hidden');
+    icono.className = el.classList.contains('hidden')
+        ? 'fa-solid fa-folder text-indigo-400 mr-2 text-sm'
+        : 'fa-solid fa-folder-open text-indigo-500 mr-2 text-sm';
+}
+
+function eliminarRegistroHistorial(id) {
+    if (confirm('¿Borrar este registro para siempre?')) {
+        historial = historial.filter(h => h.id !== id);
+        localStorage.setItem('mthori_historial_abonos', JSON.stringify(historial));
+        renderHistorialMensual();
+    }
+}
+
+
+// ════════════════════════════════════════════════════════════════════════════════
+// ── MÓDULO: DEUDORES ─────────────────────────────────────────────────────────
+// ════════════════════════════════════════════════════════════════════════════════
+
+function badgeDeudor(moneda) {
+    const cls = { usd:'badge badge-efectivo', zelle:'badge badge-zelle', bs:'badge badge-bcv', usdt:'badge badge-usdt' };
+    const lbl = { usd:'Dólares $', zelle:'Zelle', bs:'Bs. BCV', usdt:'USDT' };
+    return `<span class="${cls[moneda]||'badge'}">${lbl[moneda]||moneda}</span>`;
+}
+
+function toggleFormDeudor() {
+    const f = document.getElementById('deudor-form');
+    f.classList.toggle('hidden');
+    if (!f.classList.contains('hidden')) ndActualizarLabel();
+}
+
+function ndActualizarLabel() {
+    const moneda = document.querySelector('input[name="nd-moneda"]:checked')?.value || 'usd';
+    const lbl    = document.getElementById('nd-label-monto');
+    const aviso  = document.getElementById('aviso-bcv-deudor');
+    if (moneda === 'bs') {
+        lbl.textContent = 'Monto (Bs.)';
+        lbl.className   = 'block text-[10px] font-bold text-amber-500 mb-0.5';
+        aviso.classList.remove('hidden');
+    } else {
+        lbl.textContent = moneda === 'usdt' ? 'Monto (USDT)' : 'Monto ($)';
+        lbl.className   = 'block text-[10px] font-bold text-slate-500 mb-0.5';
+        aviso.classList.add('hidden');
+    }
+}
+
+function agregarDeudor() {
+    const nombre   = document.getElementById('nd-nombre').value.trim();
+    const montoRaw = parseFloat(document.getElementById('nd-monto').value);
+    const moneda   = document.querySelector('input[name="nd-moneda"]:checked')?.value || 'usd';
+    if (!nombre || isNaN(montoRaw) || montoRaw <= 0) { alert('Por favor ingresa datos válidos.'); return; }
+    const tasa = parseFloat(document.getElementById('tasa-bcv').value) || 0;
+    let montoUsd, montoBs = 0;
+    if (moneda === 'bs') {
+        if (tasa <= 0) { alert('La tasa BCV no está disponible. Ingrésala manualmente.'); return; }
+        montoBs  = montoRaw;
+        montoUsd = montoRaw / tasa;
+    } else {
+        montoUsd = montoRaw;
+    }
+    deudores.push({ id: Date.now(), nombre, montoUsd, montoBsOriginal: montoBs, moneda, tasaAlRegistrar: tasa });
+    localStorage.setItem('mthori_deudores', JSON.stringify(deudores));
+    document.getElementById('nd-nombre').value = '';
+    document.getElementById('nd-monto').value  = '';
+    toggleFormDeudor();
+    renderDeudores();
+    mostrarToast('✓ Deudor "' + nombre + '" registrado');
+}
+
+function eliminarDeudor(id) {
+    if (!confirm('¿Deseas borrar este deudor?')) return;
+    deudores          = deudores.filter(d => d.id !== id);
+    historialDeudores = historialDeudores.filter(h => h.deudorId !== id);
+    localStorage.setItem('mthori_deudores',      JSON.stringify(deudores));
+    localStorage.setItem('mthori_hist_deudores', JSON.stringify(historialDeudores));
+    renderDeudores();
+}
+
+function toggleHistorialDeudor(id) {
+    const el  = document.getElementById('hist-deudor-' + id);
+    const ico = document.getElementById('ico-hist-' + id);
+    if (!el) return;
+    const abierto = !el.classList.contains('hidden');
+    el.classList.toggle('hidden');
+    if (ico) ico.className = abierto
+        ? 'fa-solid fa-folder text-green-600 mr-2 text-sm'
+        : 'fa-solid fa-folder-open text-green-400 mr-2 text-sm';
+}
+
+// ── Modal abono deudor ──
+function abonarDeudor(id) {
+    const d = deudores.find(x => x.id === id);
+    if (!d) return;
+    _modalDeudorId = id;
+    const tasa = parseFloat(document.getElementById('tasa-bcv').value) || 0;
+    document.getElementById('modal-deudor-titulo').textContent = '¿Cuánto abonó "' + d.nombre + '"?';
+    document.getElementById('modal-deudor-saldo-usd').textContent = '$' + fmtComa(d.montoUsd);
+    document.getElementById('modal-deudor-saldo-bs').textContent  = tasa > 0 ? fmtComa(d.montoUsd * tasa) + ' Bs.' : '—';
+    document.querySelector('input[name="abono-deudor-moneda"][value="usd"]').checked = true;
+    actualizarModalDeudor();
+    document.getElementById('modal-deudor-monto').value = '';
+    document.getElementById('modal-deudor-preview').textContent = '';
+    document.getElementById('modal-deudor-overlay').classList.add('active');
+    setTimeout(() => document.getElementById('modal-deudor-monto').focus(), 100);
+}
+
+function actualizarModalDeudor() {
+    const moneda = document.querySelector('input[name="abono-deudor-moneda"]:checked')?.value || 'usd';
+    const lbl    = document.getElementById('modal-deudor-label-monto');
+    const pfx    = document.getElementById('modal-deudor-prefijo');
+    const aviso  = document.getElementById('aviso-bcv-abono-deudor');
+    if (moneda === 'bs') {
+        lbl.textContent = '¿Cuánto abonó (Bs.)?';
+        pfx.textContent = 'Bs';
+        pfx.className   = 'absolute left-3 top-1/2 -translate-y-1/2 text-amber-400 font-black text-[11px]';
+        aviso.classList.remove('hidden');
+    } else {
+        lbl.textContent = '¿Cuánto abonó ($)?';
+        pfx.textContent = '$';
+        pfx.className   = 'absolute left-3 top-1/2 -translate-y-1/2 text-green-400 font-black text-sm';
+        aviso.classList.add('hidden');
+    }
+    actualizarPreviewDeudor();
+}
+
+function actualizarPreviewDeudor() {
+    const tasa   = parseFloat(document.getElementById('tasa-bcv').value) || 0;
+    const monto  = parseFloat(document.getElementById('modal-deudor-monto').value);
+    const moneda = document.querySelector('input[name="abono-deudor-moneda"]:checked')?.value || 'usd';
+    const prev   = document.getElementById('modal-deudor-preview');
+    if (isNaN(monto) || monto <= 0) { prev.textContent = ''; return; }
+    if (moneda === 'bs' && tasa > 0) {
+        prev.textContent = '≈ $' + fmtComa(monto / tasa) + ' · Tasa: ' + fmtComa(tasa) + ' Bs/$';
+    } else if (moneda !== 'bs' && tasa > 0) {
+        prev.textContent = '≈ ' + fmtComa(monto * tasa) + ' Bs. · Tasa: ' + fmtComa(tasa) + ' Bs/$';
+    } else {
+        prev.textContent = '';
+    }
+}
+
+function cerrarModalDeudor() {
+    document.getElementById('modal-deudor-overlay').classList.remove('active');
+    _modalDeudorId = null;
+}
+
+function confirmarAbonoDeudor() {
+    const montoRaw = parseFloat(document.getElementById('modal-deudor-monto').value);
+    const moneda   = document.querySelector('input[name="abono-deudor-moneda"]:checked')?.value || 'usd';
+    if (isNaN(montoRaw) || montoRaw <= 0) { alert('Ingresa un monto válido.'); return; }
+    const deudor = deudores.find(d => d.id === _modalDeudorId);
+    if (!deudor) return;
+    const tasa = parseFloat(document.getElementById('tasa-bcv').value) || 0;
+    let montoUsd, montoBs;
+    if (moneda === 'bs') {
+        if (tasa <= 0) { alert('La tasa BCV no está disponible.'); return; }
+        montoBs  = montoRaw;
+        montoUsd = montoRaw / tasa;
+    } else {
+        montoUsd = montoRaw;
+        montoBs  = tasa > 0 ? montoRaw * tasa : 0;
+    }
+    const ahora = new Date();
+    const reg = {
+        id: Date.now(), timestamp: ahora.getTime(),
+        deudorId: deudor.id, nombreDeudor: deudor.nombre,
+        moneda, montoUsd, montoBs, tasaBcv: tasa,
+        fecha: ahora.toLocaleDateString('es-VE', { day:'numeric', month:'short', year:'numeric' })
+              + ' ' + ahora.toLocaleTimeString('es-VE', { hour:'2-digit', minute:'2-digit' })
+    };
+    historialDeudores.unshift(reg);
+    localStorage.setItem('mthori_hist_deudores', JSON.stringify(historialDeudores));
+    if (montoUsd >= deudor.montoUsd - 0.001) {
+        deudores = deudores.filter(d => d.id !== _modalDeudorId);
+        mostrarToast('✓ Deudor "' + deudor.nombre + '" saldado y archivado 🎉');
+    } else {
+        deudor.montoUsd -= montoUsd;
+        mostrarToast('✓ Abono de $' + fmtComa(montoUsd) + ' registrado');
+    }
+    localStorage.setItem('mthori_deudores', JSON.stringify(deudores));
+    cerrarModalDeudor();
+    renderDeudores();
+}
+
+document.getElementById('modal-deudor-overlay').addEventListener('click', function(e) {
+    if (e.target === this) cerrarModalDeudor();
+});
+
+// ── Render lista de deudores ──
+function renderDeudores() {
+    const lista   = document.getElementById('lista-deudores');
+    const resumen = document.getElementById('deudores-resumen');
+    const tasa    = parseFloat(document.getElementById('tasa-bcv').value) || 0;
+    lista.innerHTML = '';
+
+    if (deudores.length === 0) {
+        lista.innerHTML = `<div class="text-center text-xs text-gray-400 py-6 bg-gray-50 rounded-lg border border-dashed border-gray-200 font-mono">Sin deudores registrados 💸</div>`;
+        resumen.classList.add('hidden');
+        if (typeof recalcularBalance === 'function') recalcularBalance();
+        return;
+    }
+
+    let totalUsd = 0;
+    deudores.forEach(deu => {
+        totalUsd += (deu.montoUsd || 0);
+        const montoBsActual = tasa > 0 ? deu.montoUsd * tasa : null;
+        const abonos = historialDeudores.filter(h => h.deudorId === deu.id);
+
+        const abonosHtml = abonos.length > 0
+            ? abonos.map(a => {
+                const esbs = a.moneda === 'bs';
+                const montoMostrado = esbs
+                    ? `<span class="text-amber-300 font-black">-${fmtComa(a.montoBs)} Bs.</span> <span class="text-[9px] text-slate-500">/ -$${fmtComa(a.montoUsd)}</span>`
+                    : `<span class="text-green-300 font-black">-$${fmtComa(a.montoUsd)}</span>${a.montoBs > 0 ? ` <span class="text-[9px] text-slate-500">/ ${fmtComa(a.montoBs)} Bs.</span>` : ''}`;
+                return `
+                <div class="flex justify-between items-start py-1.5 border-b border-green-900 last:border-0 gap-2">
+                    <div class="flex-1">
+                        <span style="font-size:0.6rem;color:var(--muted);display:block;">
+                            <i class="fa-regular fa-calendar mr-0.5" style="color:var(--green-l);"></i>${a.fecha}
+                        </span>
+                        ${a.tasaBcv > 0 ? `<span style="font-size:0.6rem;color:var(--text3);">Tasa: ${fmtComa(a.tasaBcv)} Bs/$</span>` : ''}
+                    </div>
+                    <div class="text-right text-xs font-mono">${montoMostrado}</div>
+                </div>`;
+            }).join('')
+            : `<p class="text-[9px] text-slate-500 font-mono text-center py-1.5">Sin abonos registrados aún</p>`;
+
+        const montoDisplay = montoBsActual !== null
+            ? `<span class="text-sm font-black text-green-700 font-mono block">$${fmtComa(deu.montoUsd)}</span>
+               <span class="text-[10px] text-amber-600 font-bold font-mono block">${fmtComa(montoBsActual)} Bs.</span>`
+            : `<span class="text-sm font-black text-green-700 font-mono block">$${fmtComa(deu.montoUsd)}</span>`;
+
+        const card = document.createElement('div');
+        card.className = 'deudor-card';
+        card.innerHTML = `
+            <div class="flex justify-between items-center p-2.5 gap-2">
+                <div class="flex flex-col flex-1 min-w-0">
+                    <span class="text-xs font-black truncate" style="color:var(--text);">${deu.nombre}</span>
+                    <div class="mt-0.5">${badgeDeudor(deu.moneda)}</div>
+                </div>
+                <div class="flex items-center space-x-2 flex-shrink-0">
+                    <div class="text-right">${montoDisplay}</div>
+                    <div class="flex flex-col gap-1">
+                        <button onclick="abonarDeudor(${deu.id})" title="Registrar abono"
+                            style="padding:0.25rem 0.4rem;background:var(--cream);border:1px solid var(--border2);border-radius:6px;cursor:pointer;color:var(--green-m);">
+                            <i class="fa-solid fa-minus text-[10px]"></i>
+                        </button>
+                        <button onclick="eliminarDeudor(${deu.id})" title="Eliminar"
+                            style="padding:0.25rem 0.4rem;background:#fff0f0;border:1px solid #f0b0b0;border-radius:6px;cursor:pointer;color:#cc3333;">
+                            <i class="fa-solid fa-trash text-[10px]"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="border-t border-gray-200">
+                <div class="folder-header flex items-center justify-between" style="border-radius:0;"
+                     onclick="toggleHistorialDeudor(${deu.id})">
+                    <span class="sec-label flex items-center" style="color:var(--green-m);">
+                        <i id="ico-hist-${deu.id}" class="fa-solid fa-folder text-green-600 mr-2 text-sm"></i>
+                        Historial de Abonos
+                    </span>
+                    <span class="badge badge-efectivo">
+                        ${abonos.length} abono${abonos.length !== 1 ? 's' : ''}
+                    </span>
+                </div>
+                <div id="hist-deudor-${deu.id}" class="hidden folder-body px-3 py-2 space-y-0">
+                    ${abonosHtml}
+                </div>
+            </div>`;
+        lista.appendChild(card);
+    });
+
+    resumen.classList.remove('hidden');
+    document.getElementById('deudores-total-usd').textContent = '$' + fmtComa(totalUsd);
+
+    if (typeof recalcularBalance === 'function') recalcularBalance();
+}
+
+
+// ════════════════════════════════════════════════════════════════════════════════
+// ── MÓDULO: INGRESOS DIARIOS ─────────────────────────────────────────────────
+// ════════════════════════════════════════════════════════════════════════════════
+
+function toggleFormIngreso() {
+    const form = document.getElementById('ingreso-form');
+    form.classList.toggle('hidden');
+    if (!form.classList.contains('hidden')) {
+        const d = new Date();
+        document.getElementById('ing-fecha').value =
+            d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+        actualizarLabelMonto();
+    }
+}
+
+function actualizarLabelMonto() {
+    const metodo = document.querySelector('input[name="metodo-ingreso"]:checked')?.value || 'efectivo';
+    const lbl    = document.getElementById('label-monto-ingreso');
+    const aviso  = document.getElementById('aviso-bcv-ingreso');
+    if (metodo === 'bcv') {
+        lbl.textContent = 'Monto (Bs.)';
+        lbl.className   = 'block text-[10px] font-bold text-amber-400 mb-0.5';
+        aviso.classList.remove('hidden');
+    } else {
+        lbl.textContent = 'Monto ($)';
+        lbl.className   = 'block text-[10px] font-bold text-slate-400 mb-0.5';
+        aviso.classList.add('hidden');
+    }
+}
+
+function guardarIngreso() {
+    const concepto = document.getElementById('ing-concepto').value.trim();
+    const montoRaw = parseFloat(document.getElementById('ing-monto').value);
+    const metodo   = document.querySelector('input[name="metodo-ingreso"]:checked')?.value || 'efectivo';
+    const fechaVal = document.getElementById('ing-fecha').value;
+    if (!concepto || isNaN(montoRaw) || montoRaw <= 0) { alert('Por favor ingresa datos válidos.'); return; }
+    if (!fechaVal) { alert('Indica una fecha.'); return; }
+    const tasa = parseFloat(document.getElementById('tasa-bcv').value) || 0;
+    let montoUsd = 0, montoBs = 0;
+    if (metodo === 'bcv') {
+        if (tasa <= 0) { alert('La tasa BCV no está disponible. Por favor ingrésala manualmente.'); return; }
+        montoBs  = montoRaw;
+        montoUsd = montoRaw / tasa;
+    } else {
+        montoUsd = montoRaw;
+        montoBs  = tasa > 0 ? montoRaw * tasa : 0;
+    }
+    const [yy, mm, dd] = fechaVal.split('-').map(Number);
+    const fechaObj = new Date(yy, mm - 1, dd, 12, 0, 0);
+    const reg = {
+        id: Date.now(), timestamp: fechaObj.getTime(),
+        concepto, metodo,
+        montoUsd: Number(montoUsd) || 0,
+        montoBs:  Number(montoBs)  || 0,
+        tasaBcv: tasa, fechaISO: fechaVal
+    };
+    ingresos.unshift(reg);
+    localStorage.setItem('mthori_ingresos', JSON.stringify(ingresos));
+    document.getElementById('ing-concepto').value = '';
+    document.getElementById('ing-monto').value    = '';
+    toggleFormIngreso();
+    renderIngresos();
+    mostrarToast('✓ Ingreso de $' + fmtComa(montoUsd) + ' registrado');
+}
+
+function eliminarIngreso(id) {
+    if (confirm('¿Borrar este ingreso?')) {
+        ingresos = ingresos.filter(i => i.id !== id);
+        localStorage.setItem('mthori_ingresos', JSON.stringify(ingresos));
+        renderIngresos();
+    }
+}
+
+function badgeIngreso(metodo) {
+    const m = { efectivo:'badge badge-efectivo', zelle:'badge badge-zelle', bcv:'badge badge-bcv', usdt:'badge badge-usdt' };
+    const l = { efectivo:'Efectivo', zelle:'Zelle', bcv:'BCV', usdt:'USDT' };
+    return `<span class="${m[metodo]||'badge'}">${l[metodo]||metodo}</span>`;
+}
+
+function renderIngresos() {
+    const hoy       = new Date();
+    const hoyY      = hoy.getFullYear();
+    const hoyM      = hoy.getMonth();
+    const hoyD      = hoy.getDate();
+
+    // ── Total de los últimos 7 días ──────────────────────────────────────────
+    const hace7dias = new Date(hoyY, hoyM, hoyD - 6, 0, 0, 0); // inicio del día hace 6 días
+    let totalSemana = 0;
+    const totalesDia7 = new Array(7).fill(0);
+    const dias = ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
+
+    ingresos.forEach(i => {
+        const d     = new Date(i.timestamp);
+        const dSolo = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0);
+        const diff  = Math.round((dSolo - hace7dias) / 86400000);
+        if (diff >= 0 && diff < 7) {
+            totalesDia7[diff] += (i.montoUsd || 0);
+            totalSemana       += (i.montoUsd || 0);
+        }
+    });
+
+    // Las etiquetas son los últimos 7 días en orden
+    const labelsUlt7 = [];
+    for (let k = 0; k < 7; k++) {
+        const d = new Date(hoyY, hoyM, hoyD - 6 + k);
+        labelsUlt7.push(dias[d.getDay() === 0 ? 6 : d.getDay() - 1]);
+    }
+    const hoyIdx = 6; // el último elemento siempre es hoy
+
+    document.getElementById('ingreso-total-semana').textContent = '$' + fmtComa(totalSemana);
+
+    // ── Total del mes actual en curso ────────────────────────────────────────
+    let totalMesActual = 0;
+    ingresos.forEach(i => {
+        const d = new Date(i.timestamp);
+        if (d.getFullYear() === hoyY && d.getMonth() === hoyM) {
+            totalMesActual += (i.montoUsd || 0);
+        }
+    });
+    const elMesActual = document.getElementById('ingreso-total-mes');
+    if (elMesActual) elMesActual.textContent = '$' + fmtComa(totalMesActual);
+
+    // ── Gráfica ─────────────────────────────────────────────────────────────
+    const bgColors  = labelsUlt7.map((_,i) => i === hoyIdx ? 'rgba(74,124,89,0.85)' : 'rgba(184,145,47,0.5)');
+    const brdColors = labelsUlt7.map((_,i) => i === hoyIdx ? 'rgba(46,102,68,1)' : 'rgba(176,145,80,1)');
+
+    const canvas = document.getElementById('chart-ingresos');
+    if (_chartIngresos) { _chartIngresos.destroy(); _chartIngresos = null; }
+    _chartIngresos = new Chart(canvas, {
+        type: 'bar',
+        data: {
+            labels: labelsUlt7,
+            datasets: [{
+                label: 'Ingresos ($)', data: totalesDia7,
+                backgroundColor: bgColors, borderColor: brdColors,
+                borderWidth: 1.5, borderRadius: 5, borderSkipped: false
+            }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    backgroundColor: '#f5ede0', borderColor: '#b8912f', borderWidth: 1,
+                    titleColor: '#7a5500', bodyColor: '#5c4228',
+                    callbacks: { label: ctx => ' $' + fmtComa(ctx.parsed.y) }
+                }
+            },
+            scales: {
+                x: { ticks: { color:'#9a7d5c', font:{ size:9, family:'JetBrains Mono', weight:'bold' } }, grid:{ color:'rgba(160,128,96,0.12)' } },
+                y: { ticks: { color:'#9a7d5c', font:{ size:9, family:'JetBrains Mono' }, callback: v => '$' + fmtComa(v) }, grid:{ color:'rgba(160,128,96,0.12)' }, beginAtZero: true }
+            }
+        }
+    });
+
+    // ── Historial: CARPETAS COLAPSABLES POR FECHA EXACTA (Día/Mes/Año) ──────
+    const contenedor = document.getElementById('ingreso-historial-container');
+    contenedor.innerHTML = '';
+    if (ingresos.length === 0) {
+        contenedor.innerHTML = '<div style="text-align:center;font-size:0.72rem;color:var(--muted);padding:1rem;border-radius:8px;border:1.5px dashed var(--border2);">Sin ingresos registrados todavía</div>';
+        return;
+    }
+
+    // Agrupar por fecha exacta (YYYY-MM-DD)
+    const diasMap = {};
+    ingresos.forEach(i => {
+        const d      = new Date(i.timestamp);
+        const key    = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+        const label  = d.toLocaleDateString('es-VE', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+        if (!diasMap[key]) diasMap[key] = { label, items:[], totalUsd:0, fechaTs: d.getTime() };
+        diasMap[key].items.push(i);
+        diasMap[key].totalUsd += (i.montoUsd || 0);
+    });
+
+    // Ordenar días de más reciente a más antiguo
+    const diasOrdenados = Object.keys(diasMap).sort((a, b) => diasMap[b].fechaTs - diasMap[a].fechaTs);
+
+    diasOrdenados.forEach(dKey => {
+        const dia = diasMap[dKey];
+        const carpetaId = 'ing-dia-' + dKey;
+
+        const regsHtml = dia.items
+            .sort((a, b) => b.timestamp - a.timestamp)
+            .map(i => {
+                const d       = new Date(i.timestamp);
+                const horaStr = d.toLocaleTimeString('es-VE', { hour:'2-digit', minute:'2-digit' });
+                const bsExtra = (i.metodo === 'bcv' || (i.montoBs && i.montoBs > 0))
+                    ? `<span style="color:var(--gold);font-weight:700;font-family:'JetBrains Mono',monospace;font-size:0.65rem;margin-left:0.25rem;">${fmtBs(i.montoBs)} Bs.</span>` : '';
+                const tasaInfo = (i.tasaBcv && i.tasaBcv > 0)
+                    ? `<span style="color:var(--text3);font-size:0.6rem;"> · Tasa: ${fmtBs(i.tasaBcv)} Bs/$</span>` : '';
+                return `
+                <div class="hist-item p-2.5 flex justify-between items-start gap-2">
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center gap-1.5 flex-wrap mb-1">
+                            <span class="text-xs font-black" style="color:var(--text);">${i.concepto}</span>
+                            ${badgeIngreso(i.metodo)}
+                        </div>
+                        <div style="font-size:0.6rem;color:var(--muted);font-family:'JetBrains Mono',monospace;line-height:1.5;">
+                            <i class="fa-regular fa-clock mr-0.5" style="color:var(--green-l);"></i>${horaStr}
+                            ${tasaInfo}
+                            ${bsExtra}
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2 flex-shrink-0 mt-0.5">
+                        <span style="font-size:0.9rem;font-weight:900;color:var(--green-m);font-family:'JetBrains Mono',monospace;">$${fmtComa(i.montoUsd)}</span>
+                        <button onclick="eliminarIngreso(${i.id})" title="Eliminar ingreso"
+                            style="padding:0.2rem 0.35rem;background:#fff0f0;border:1px solid #f0b0b0;border-radius:6px;cursor:pointer;color:#cc3333;">
+                            <i class="fa-solid fa-trash" style="font-size:0.6rem;"></i>
+                        </button>
+                    </div>
+                </div>`;
+            }).join('');
+
+        const div = document.createElement('div');
+        div.className = 'card overflow-hidden';
+        div.innerHTML = `
+            <div class="folder-header flex justify-between items-center"
+                 onclick="toggleCarpetaDia('${carpetaId}')">
+                <span class="sec-label flex items-center gap-1.5" style="color:var(--green-m);">
+                    <i id="ico-${carpetaId}" class="fa-solid fa-folder text-sm" style="color:var(--green-l);"></i>
+                    <span style="text-transform:capitalize;">${dia.label}</span>
+                </span>
+                <div class="flex items-center gap-2">
+                    <span style="font-size:0.58rem;background:var(--cream2);color:var(--text3);border:1px solid var(--border);border-radius:99px;padding:0.15rem 0.5rem;font-weight:700;font-family:'JetBrains Mono',monospace;">
+                        ${dia.items.length} ingreso${dia.items.length !== 1 ? 's' : ''}
+                    </span>
+                    <span style="font-size:0.65rem;background:#f0fdf4;color:var(--green-m);border:1px solid #86efac;border-radius:99px;padding:0.15rem 0.6rem;font-weight:900;font-family:'JetBrains Mono',monospace;">
+                        $${fmtComa(dia.totalUsd)}
+                    </span>
+                </div>
+            </div>
+            <div id="${carpetaId}" class="hidden folder-body p-2 space-y-1.5">
+                ${regsHtml}
+            </div>`;
+        contenedor.appendChild(div);
+    });
+}
+
+function toggleCarpetaDia(id) {
+    const el  = document.getElementById(id);
+    const ico = document.getElementById('ico-' + id);
+    if (!el) return;
+    el.classList.toggle('hidden');
+    if (ico) {
+        ico.className = el.classList.contains('hidden')
+            ? 'fa-solid fa-folder text-sm'
+            : 'fa-solid fa-folder-open text-sm';
+        ico.style.color = el.classList.contains('hidden') ? 'var(--green-l)' : 'var(--green-m)';
+    }
+}
+
+
+// ════════════════════════════════════════════════════════════════════════════════
+// ── FUNCIÓN PRINCIPAL: calcularTodo ─────────────────────────────────────────
+// ════════════════════════════════════════════════════════════════════════════════
+
+function calcularTodo() {
+    const tasaBcv = parseFloat(document.getElementById('tasa-bcv').value) || 0;
+
+    document.getElementById('calc-tasa-ref').textContent = fmtBs(tasaBcv);
+    if (document.getElementById('calc-usd').value) calcUsdToBs();
+    else if (document.getElementById('calc-bs').value) calcBsToUsd();
+
+    let totalEfectivo = 0, totalZelle = 0, totalBcvUsd = 0, totalUsdt = 0;
+    const contenedorLista = document.getElementById('lista-deudas');
+    contenedorLista.innerHTML = '';
+
+    if (deudas.length === 0) {
+        contenedorLista.innerHTML = '<div style="text-align:center;font-size:0.72rem;color:var(--muted);padding:1.5rem;background:var(--cream);border-radius:10px;border:1.5px dashed var(--border2);">¡Sin cuentas pendientes! 🪙</div>';
+    }
+
+    deudas.forEach(deuda => {
+        let badgeColor = '', badgeText = '', textoMonto = '';
+        const montoUsd = Number(deuda.montoUsd) || 0;
+        if (deuda.tipoTasa === 'efectivo') {
+            totalEfectivo += montoUsd;
+            badgeColor = 'bg-emerald-100 text-emerald-800 border-emerald-200'; badgeText = 'Efectivo';
+            textoMonto = `<span class="font-black">$${fmtComa(montoUsd)}</span>`;
+        } else if (deuda.tipoTasa === 'zelle') {
+            totalZelle += montoUsd;
+            badgeColor = 'bg-cyan-100 text-cyan-800 border-cyan-200'; badgeText = 'Zelle';
+            textoMonto = `<span class="font-black">$${fmtComa(montoUsd)}</span>`;
+        } else if (deuda.tipoTasa === 'bcv') {
+            totalBcvUsd += montoUsd;
+            badgeColor = 'bg-amber-100 text-amber-800 border-amber-200'; badgeText = 'BCV';
+            textoMonto = `<div class="text-right">
+                <span class="font-black" style="color:var(--text);">${fmtBs(montoUsd * tasaBcv)} Bs.</span>
+                <span class="text-[10px] text-gray-400 block font-medium">($${fmtComa(montoUsd)})</span>
+            </div>`;
+        } else if (deuda.tipoTasa === 'usdt') {
+            totalUsdt += montoUsd;
+            badgeColor = 'bg-teal-100 text-teal-800 border-teal-300'; badgeText = 'USDT';
+            textoMonto = `<span class="font-black">$${fmtComa(montoUsd)}</span>`;
+        }
+
+        const card = document.createElement('div');
+        card.className = 'deuda-card flex justify-between items-center p-2.5';
+        card.innerHTML = `
+            <div class="flex flex-col">
+                <span class="text-xs font-black" style="color:var(--text);">${deuda.nombre}</span>
+                <span class="${badgeColor}" style="margin-top:0.25rem;display:inline-block;">${badgeText}</span>
+            </div>
+            <div class="flex items-center space-x-2">
+                <div class="text-xs text-right font-mono">${textoMonto}</div>
+                <div class="flex space-x-1">
+                    <button onclick="abonarDeuda(${deuda.id})" title="Abonar"
+                        style="padding:0.25rem 0.4rem;background:var(--cream);border:1px solid var(--border2);border-radius:6px;cursor:pointer;color:var(--gold);">
+                        <i class="fa-solid fa-minus text-[10px]"></i>
+                    </button>
+                    <button onclick="eliminarDeuda(${deuda.id})" title="Eliminar"
+                        style="padding:0.25rem 0.4rem;background:#fff0f0;border:1px solid #f0b0b0;border-radius:6px;cursor:pointer;color:#cc3333;">
+                        <i class="fa-solid fa-trash text-[10px]"></i>
+                    </button>
+                </div>
+            </div>`;
+        contenedorLista.appendChild(card);
+    });
+
+    document.getElementById('total-debido-efectivo').innerText = `$${fmtComa(totalEfectivo)}`;
+    document.getElementById('total-debido-zelle').innerText    = `$${fmtComa(totalZelle)}`;
+    document.getElementById('total-debido-bcv-bs').innerText   = fmtBs(totalBcvUsd * tasaBcv) + ' Bs';
+    document.getElementById('total-debido-bcv-usd').innerText  = `($${fmtComa(totalBcvUsd)})`;
+    document.getElementById('total-debido-usdt').innerText     = `$${fmtComa(totalUsdt)}`;
+    document.getElementById('total-general-usd').innerText     = `$${fmtComa(totalEfectivo + totalZelle + totalBcvUsd + totalUsdt)}`;
+
+    renderHistorialMensual();
+    renderIngresos();
+    renderDeudores();
+    divActualizarKPIs();
+}
+
+
+// ════════════════════════════════════════════════════════════════════════════════
+// ── MÓDULO: BALANCE GENERAL ──────────────────────────────────────────────────
+// ════════════════════════════════════════════════════════════════════════════════
+
+function guardarBalanceOtros() {
+    balanceOtros = {
+        zelle:       parseFloat(document.getElementById('bal-zelle').value)        || 0,
+        binance:     parseFloat(document.getElementById('bal-binance').value)      || 0,
+        binanceTasa: parseFloat(document.getElementById('bal-binance-tasa').value) || 0,
+        efectivo:    parseFloat(document.getElementById('bal-efectivo').value)     || 0
+    };
+    localStorage.setItem('mthori_balance_otros', JSON.stringify(balanceOtros));
+}
+
+function balAddBanco() {
+    const nombre = prompt('Nombre del banco (ej. Banesco, BDV...):');
+    if (!nombre || !nombre.trim()) return;
+    balanceBancos.push({ id: Date.now(), nombre: nombre.trim(), saldoBs: 0 });
+    localStorage.setItem('mthori_balance_bancos', JSON.stringify(balanceBancos));
+    renderBalanceBancos();
+    recalcularBalance();
+}
+
+function balRemoveBanco(id) {
+    if (!confirm('¿Eliminar esta cuenta bancaria del balance?')) return;
+    balanceBancos = balanceBancos.filter(b => b.id !== id);
+    localStorage.setItem('mthori_balance_bancos', JSON.stringify(balanceBancos));
+    renderBalanceBancos();
+    recalcularBalance();
+}
+
+function balUpdateBanco(id) {
+    const el = document.getElementById('bal-banco-input-' + id);
+    if (!el) return;
+    const banco = balanceBancos.find(b => b.id === id);
+    if (banco) {
+        banco.saldoBs = parseFloat(el.value) || 0;
+        localStorage.setItem('mthori_balance_bancos', JSON.stringify(balanceBancos));
+    }
+    recalcularBalance();
+}
+
+function renderBalanceBancos() {
+    const lista = document.getElementById('bal-bancos-lista');
+    if (balanceBancos.length === 0) {
+        lista.innerHTML = `<div style="font-size:0.65rem;color:var(--muted);text-align:center;padding:0.5rem;border:1.5px dashed var(--border2);border-radius:8px;"><i class="fa-solid fa-plus-circle mr-1" style="color:var(--gold);"></i> Agrega tus cuentas bancarias</div>`;
+        return;
+    }
+    lista.innerHTML = '';
+    balanceBancos.forEach(banco => {
+        const div = document.createElement('div');
+        div.className = 'flex items-center gap-2';
+        div.innerHTML = `
+            <div class="flex-1 flex items-center gap-1.5 bg-slate-900 rounded-lg px-2 py-1.5 border border-slate-800">
+                <i class="fa-solid fa-building-columns text-[10px] flex-shrink-0" style="color:var(--gold);"></i>
+                <span style="font-size:0.62rem;color:var(--text2);font-family:'JetBrains Mono',monospace;flex-shrink:0;width:66px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${banco.nombre}">${banco.nombre}</span>
+                <div class="relative flex-1">
+                    <input type="number" step="0.01" min="0"
+                        id="bal-banco-input-${banco.id}"
+                        value="${banco.saldoBs || ''}"
+                        placeholder="Saldo Bs."
+                        class="balance-input-sm balance-input w-full pr-7 pl-2 py-1.5 text-xs font-black rounded"
+                        oninput="balUpdateBanco(${banco.id})">
+                    <span class="absolute right-2 top-1/2 -translate-y-1/2 text-[9px] font-bold" style="color:var(--gold);">Bs</span>
+                </div>
+                <span id="bal-banco-eq-${banco.id}" class="text-[9px] text-slate-600 font-mono flex-shrink-0 min-w-[50px] text-right">$—</span>
+            </div>
+            <button onclick="balRemoveBanco(${banco.id})"
+                style="color:var(--muted);flex-shrink:0;padding:0.25rem;background:none;border:none;cursor:pointer;">
+                <i class="fa-solid fa-trash text-[10px]"></i>
+            </button>`;
+        lista.appendChild(div);
+    });
+}
+
+function pulseEl(id) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.classList.remove('balance-pulse');
+    void el.offsetWidth;
+    el.classList.add('balance-pulse');
+    el.addEventListener('animationend', () => el.classList.remove('balance-pulse'), { once: true });
+}
+
+function recalcularBalance() {
+    guardarBalanceOtros();
+    const tasa = parseFloat(document.getElementById('tasa-bcv').value) || 0;
+
+    let totalBancosBs  = 0;
+    let totalBancosUsd = 0;
+    balanceBancos.forEach(banco => {
+        const saldoBs = banco.saldoBs || 0;
+        totalBancosBs += saldoBs;
+        const eq = tasa > 0 ? saldoBs / tasa : 0;
+        totalBancosUsd += eq;
+        const eqEl = document.getElementById('bal-banco-eq-' + banco.id);
+        if (eqEl) {
+            eqEl.textContent = tasa > 0 ? '$' + fmtComa(eq) : '$—';
+            eqEl.className   = 'text-[9px] font-mono flex-shrink-0 min-w-[50px] text-right ' +
+                (tasa > 0 ? 'text-emerald-600' : 'text-slate-600');
+        }
+    });
+    document.getElementById('bal-bancos-total-usd').textContent =
+        tasa > 0 ? '$' + fmtComa(totalBancosUsd) : '$—';
+    document.getElementById('bal-bancos-total-bs-label').textContent =
+        '(' + fmtComa(totalBancosBs) + ' Bs.)';
+
+    const zelleUsd = parseFloat(document.getElementById('bal-zelle').value) || 0;
+    const zelleBs  = tasa > 0 ? zelleUsd * tasa : 0;
+    const elZelleBs = document.getElementById('bal-zelle-bs');
+    elZelleBs.textContent = tasa > 0 ? fmtComa(zelleBs) + ' Bs.' : '— Bs.';
+    elZelleBs.className   = 'balance-equivalente block text-right ' + (tasa > 0 && zelleUsd > 0 ? 'activo' : '');
+
+    const binanceUsd  = parseFloat(document.getElementById('bal-binance').value)      || 0;
+    const binanceTasa = parseFloat(document.getElementById('bal-binance-tasa').value) || 0;
+    const binanceBs   = binanceTasa > 0 ? binanceUsd * binanceTasa : (tasa > 0 ? binanceUsd * tasa : 0);
+    const tasaUsada   = binanceTasa > 0 ? binanceTasa : tasa;
+    const elBinBs = document.getElementById('bal-binance-bs');
+    if (tasaUsada > 0) {
+        elBinBs.textContent = fmtComa(binanceBs) + ' Bs.' +
+            (binanceTasa > 0 ? ' (tasa venta ' + fmtComa(binanceTasa) + ')' : ' (tasa BCV)');
+    } else {
+        elBinBs.textContent = '— Bs.';
+    }
+    elBinBs.className = 'balance-equivalente text-right ' + (binanceBs > 0 ? 'activo' : '');
+
+    const efectivoUsd = parseFloat(document.getElementById('bal-efectivo').value) || 0;
+    const efectivoBs  = tasa > 0 ? efectivoUsd * tasa : 0;
+    const elEfBs = document.getElementById('bal-efectivo-bs');
+    elEfBs.textContent = tasa > 0 ? fmtComa(efectivoBs) + ' Bs.' : '— Bs.';
+    elEfBs.className   = 'balance-equivalente block text-right ' + (tasa > 0 && efectivoUsd > 0 ? 'activo' : '');
+
+    let cobrarUsd = 0;
+    deudores.forEach(d => { cobrarUsd += (d.montoUsd || 0); });
+    const cobrarBs = tasa > 0 ? cobrarUsd * tasa : 0;
+    document.getElementById('bal-cobrar-usd').textContent = '$' + fmtComa(cobrarUsd);
+    document.getElementById('bal-cobrar-bs').textContent  = fmtComa(cobrarBs) + ' Bs.';
+
+    const granTotalUsd = totalBancosUsd + zelleUsd + binanceUsd + efectivoUsd + cobrarUsd;
+    const granTotalBs  = tasa > 0 ? granTotalUsd * tasa : 0;
+    document.getElementById('bal-gran-total-usd').textContent = '$' + fmtComa(granTotalUsd);
+    document.getElementById('bal-gran-total-bs').textContent  = fmtComa(granTotalBs);
+
+    document.getElementById('bal-resumen-bancos').textContent  = '$' + fmtComa(totalBancosUsd);
+    document.getElementById('bal-resumen-activos').textContent = '$' + fmtComa(zelleUsd + binanceUsd + efectivoUsd);
+    document.getElementById('bal-resumen-cobrar').textContent  = '$' + fmtComa(cobrarUsd);
+
+    pulseEl('bal-gran-total-usd');
+}
+
+(function initBalance() {
+    document.getElementById('bal-zelle').value        = balanceOtros.zelle       || '';
+    document.getElementById('bal-binance').value      = balanceOtros.binance     || '';
+    document.getElementById('bal-binance-tasa').value = balanceOtros.binanceTasa || '';
+    document.getElementById('bal-efectivo').value     = balanceOtros.efectivo    || '';
+    renderBalanceBancos();
+})();
+
+// ── Arranque inicial ──
+verificarCierreMensual();
+calcularTodo();
+
+
+// ════════════════════════════════════════════════════════════════════════════════
+// ── MÓDULO: DIVISAS COMPRADAS (Cambistas) ────────────────────────────────────
+// ════════════════════════════════════════════════════════════════════════════════
+
+// ── Guardar en localStorage ──
+function divGuardar() {
+    localStorage.setItem('mthori_compras_divisas', JSON.stringify(comprasDivisas));
+}
+
+// ── Toggle formulario colapsable ──
+function divToggleForm() {
+    const form = document.getElementById('div-form');
+    form.classList.toggle('hidden');
+    if (!form.classList.contains('hidden')) {
+        const d = new Date();
+        document.getElementById('div-fecha').value =
+            d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+        divSelectEstado('pago',   'pendiente');
+        divSelectEstado('retiro', 'pendiente');
+        document.getElementById('div-preview-container').style.display = 'none';
+        document.getElementById('div-cambista').focus();
+    }
+}
+
+// ── Preview en tiempo real del total en Bs ──
+function divPreviewBs() {
+    const usd  = parseFloat(document.getElementById('div-monto-usd').value) || 0;
+    const tasa = parseFloat(document.getElementById('div-tasa').value) || 0;
+    const prev = document.getElementById('div-preview-container');
+    if (usd > 0 && tasa > 0) {
+        const totalBs = usd * tasa;
+        document.getElementById('div-preview-bs-val').textContent  = fmtBs(totalBs) + ' Bs.';
+        document.getElementById('div-preview-usd-val').textContent = '$' + fmtComa(usd);
+        prev.style.display = 'flex';
+    } else {
+        prev.style.display = 'none';
+    }
+}
+
+// ── Seleccionar estado visualmente ──
+function divSelectEstado(tipo, valor) {
+    if (tipo === 'pago') {
+        const optPagado    = document.getElementById('opt-pago-pagado');
+        const optPendiente = document.getElementById('opt-pago-pendiente');
+        if (!optPagado || !optPendiente) return;
+        optPagado.classList.remove('sel-pagado','sel-debo');
+        optPendiente.classList.remove('sel-pagado','sel-debo');
+        if (valor === 'pagado') {
+            optPagado.classList.add('sel-pagado');
+            optPagado.querySelector('input').checked = true;
+        } else {
+            optPendiente.classList.add('sel-debo');
+            optPendiente.querySelector('input').checked = true;
+        }
+    } else {
+        const optRetirado  = document.getElementById('opt-retiro-retirado');
+        const optPendiente = document.getElementById('opt-retiro-pendiente');
+        if (!optRetirado || !optPendiente) return;
+        optRetirado.classList.remove('sel-retirado','sel-pendret');
+        optPendiente.classList.remove('sel-retirado','sel-pendret');
+        if (valor === 'retirado') {
+            optRetirado.classList.add('sel-retirado');
+            optRetirado.querySelector('input').checked = true;
+        } else {
+            optPendiente.classList.add('sel-pendret');
+            optPendiente.querySelector('input').checked = true;
+        }
+    }
+}
+
+// ── GUARDAR NUEVA COMPRA (función principal del formulario) ──
+function divGuardarCompra() {
+    const cambista    = document.getElementById('div-cambista').value.trim();
+    const montoUsd    = parseFloat(document.getElementById('div-monto-usd').value);
+    const tasaPactada = parseFloat(document.getElementById('div-tasa').value);
+    const fechaVal    = document.getElementById('div-fecha').value;
+
+    if (!cambista)                              { mostrarToast('⚠ Ingresa el nombre del cambista');    return; }
+    if (isNaN(montoUsd)   || montoUsd   <= 0)  { mostrarToast('⚠ Ingresa un monto válido en $');     return; }
+    if (isNaN(tasaPactada)|| tasaPactada <= 0)  { mostrarToast('⚠ Ingresa la tasa pactada');          return; }
+    if (!fechaVal)                              { mostrarToast('⚠ Selecciona una fecha');              return; }
+
+    const estadoPago   = document.querySelector('input[name="div-estado-pago"]:checked')?.value   || 'pendiente';
+    const estadoRetiro = document.querySelector('input[name="div-estado-retiro"]:checked')?.value || 'pendiente';
+    const montoBsTotal = Number(montoUsd) * Number(tasaPactada);
+
+    const registro = {
+        id:           Date.now(),
+        cambista:     cambista,
+        montoUsd:     Number(montoUsd),
+        tasaPactada:  Number(tasaPactada),
+        montoBsTotal: Number(montoBsTotal),
+        fechaCompra:  fechaVal,
+        estadoPago:   estadoPago,
+        estadoRetiro: estadoRetiro
+    };
+
+    comprasDivisas.unshift(registro);
+    divGuardar();
+
+    document.getElementById('div-cambista').value   = '';
+    document.getElementById('div-monto-usd').value  = '';
+    document.getElementById('div-tasa').value        = '';
+    document.getElementById('div-preview-container').style.display = 'none';
+    divToggleForm();
+
+    divRenderHistorial();
+    mostrarToast('✓ Compra a "' + cambista + '" registrada · $' + fmtComa(montoUsd));
+}
+
+// ── Eliminar compra ──
+function divEliminar(id) {
+    if (!confirm('¿Borrar esta compra de divisa?')) return;
+    comprasDivisas = comprasDivisas.filter(c => c.id !== id);
+    divGuardar();
+    divRenderHistorial();
+    mostrarToast('✓ Registro eliminado');
+}
+
+// ── Alternar estado de Pago ──
+function divTogglePago(id) {
+    const c = comprasDivisas.find(x => x.id === id);
+    if (!c) return;
+    c.estadoPago = c.estadoPago === 'pagado' ? 'pendiente' : 'pagado';
+    divGuardar();
+    divRenderHistorial();
+    mostrarToast(c.estadoPago === 'pagado' ? '✓ Marcado como Pagado' : '↩ Marcado como Pendiente de pago');
+}
+
+// ── Alternar estado de Retiro ──
+function divToggleRetiro(id) {
+    const c = comprasDivisas.find(x => x.id === id);
+    if (!c) return;
+    c.estadoRetiro = c.estadoRetiro === 'retirado' ? 'pendiente' : 'retirado';
+    divGuardar();
+    divRenderHistorial();
+    mostrarToast(c.estadoRetiro === 'retirado' ? '✓ Marcado como Retirado' : '↩ Pendiente por buscar');
+}
+
+// ── Badges de estado ──
+function divBadgePago(estado) {
+    return estado === 'pagado'
+        ? '<span class="badge-pagado"><i class="fa-solid fa-check mr-0.5"></i>Pagado</span>'
+        : '<span class="badge-debo"><i class="fa-solid fa-hourglass-half mr-0.5"></i>Debo · Pendiente</span>';
+}
+function divBadgeRetiro(estado) {
+    return estado === 'retirado'
+        ? '<span class="badge-retirado"><i class="fa-solid fa-money-bills mr-0.5"></i>Retirado</span>'
+        : '<span class="badge-pendiente-ret"><i class="fa-solid fa-location-dot mr-0.5"></i>Por Buscar</span>';
+}
+
+// ── KPI Cards: cálculos exactos con fmtComa ──
+function divActualizarKPIs() {
+    const tasa = parseFloat(document.getElementById('tasa-bcv').value) || 0;
+
+    // KPI 1: Total Pendiente por Buscar → suma $ de registros con estadoRetiro === 'pendiente'
+    const pendRetUsd = comprasDivisas
+        .filter(c => c.estadoRetiro === 'pendiente')
+        .reduce((s, c) => s + (Number(c.montoUsd) || 0), 0);
+
+    // KPI 2: Total que Debo → suma Bs. de registros con estadoPago === 'pendiente'
+    const deboTotalBs = comprasDivisas
+        .filter(c => c.estadoPago === 'pendiente')
+        .reduce((s, c) => s + (Number(c.montoBsTotal) || 0), 0);
+
+    // Equivalente en $ del monto que debo, usando monto USD directo
+    const deboTotalUsd = comprasDivisas
+        .filter(c => c.estadoPago === 'pendiente')
+        .reduce((s, c) => s + (Number(c.montoUsd) || 0), 0);
+
+    const elPend = document.getElementById('div-kpi-pendiente-usd');
+    const elBs   = document.getElementById('div-kpi-debo-bs');
+    const elUsd  = document.getElementById('div-kpi-debo-usd');
+
+    if (elPend) elPend.textContent = '$' + fmtComa(pendRetUsd);
+    if (elBs)   elBs.textContent   = fmtBs(deboTotalBs) + ' Bs.';
+    if (elUsd)  elUsd.textContent  = '≈ $' + fmtComa(deboTotalUsd);
+}
+
+// ── Render historial agrupado por cambista ──
+function divRenderHistorial() {
+    const contenedor = document.getElementById('div-historial-container');
+    if (!contenedor) return;
+    contenedor.innerHTML = '';
+
+    if (comprasDivisas.length === 0) {
+        contenedor.innerHTML = `
+            <div style="text-align:center;padding:2rem 1rem;border:1.5px dashed #c4b5fd;border-radius:10px;background:#faf5ff;">
+                <i class="fa-solid fa-handshake" style="font-size:1.5rem;color:#c4b5fd;display:block;margin-bottom:0.5rem;"></i>
+                <span style="font-size:0.7rem;color:#7c3aed;font-weight:700;">Sin compras registradas</span><br>
+                <span style="font-size:0.62rem;color:var(--muted);">Pulsa "Registrar Compra" para comenzar</span>
+            </div>`;
+        divActualizarKPIs();
+        return;
+    }
+
+    // Agrupar por cambista
+    const grupos = {};
+    comprasDivisas.forEach(c => {
+        const key = c.cambista.toLowerCase().trim();
+        if (!grupos[key]) grupos[key] = { nombre: c.cambista, items: [], totalUsd: 0, totalBs: 0 };
+        grupos[key].items.push(c);
+        grupos[key].totalUsd += (Number(c.montoUsd)    || 0);
+        grupos[key].totalBs  += (Number(c.montoBsTotal) || 0);
+    });
+
+    Object.keys(grupos).forEach((key, idx) => {
+        const grupo     = grupos[key];
+        const carpetaId = 'div-carpeta-' + key.replace(/\s+/g,'-').replace(/[^a-z0-9-]/gi,'') + '-' + idx;
+
+        const itemsHtml = grupo.items.map(c => {
+            const fechaObj = new Date(c.fechaCompra + 'T12:00:00');
+            const fechaStr = fechaObj.toLocaleDateString('es-VE', { weekday:'short', day:'numeric', month:'short', year:'numeric' });
+
+            const btnPagoLabel = c.estadoPago   === 'pagado'   ? 'Marcar Pendiente' : 'Marcar Pagado';
+            const btnPagoColor = c.estadoPago   === 'pagado'
+                ? 'background:#fef3c7;border-color:#fcd34d;color:#92400e;'
+                : 'background:#dcfce7;border-color:#86efac;color:#15803d;';
+            const btnPagoIcon  = c.estadoPago   === 'pagado'   ? 'fa-rotate-left'   : 'fa-check';
+
+            const btnRetLabel  = c.estadoRetiro === 'retirado' ? 'Marcar Pendiente' : 'Marcar Retirado';
+            const btnRetColor  = c.estadoRetiro === 'retirado'
+                ? 'background:#ede9fe;border-color:#c4b5fd;color:#5b21b6;'
+                : 'background:#dbeafe;border-color:#93c5fd;color:#1d4ed8;';
+            const btnRetIcon   = c.estadoRetiro === 'retirado' ? 'fa-rotate-left'   : 'fa-money-bills';
+
+            return `
+            <div class="div-compra-card">
+                <div class="flex justify-between items-start p-2.5 gap-2">
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center gap-1.5 flex-wrap mb-1">
+                            <i class="fa-solid fa-user-tie" style="color:#7c3aed;font-size:0.7rem;"></i>
+                            <span style="font-size:0.78rem;font-weight:900;color:var(--text);">${c.cambista}</span>
+                        </div>
+                        <div style="font-size:0.6rem;color:var(--muted);font-family:'JetBrains Mono',monospace;margin-bottom:0.5rem;">
+                            <i class="fa-regular fa-calendar mr-0.5" style="color:#a855f7;"></i>${fechaStr}
+                        </div>
+                        <div class="flex items-baseline gap-2 flex-wrap">
+                            <span style="font-size:1.05rem;font-weight:900;color:var(--green-m);font-family:'JetBrains Mono',monospace;">$${fmtComa(c.montoUsd)}</span>
+                            <span style="font-size:0.6rem;color:var(--muted);">a</span>
+                            <span style="font-size:0.72rem;font-weight:800;color:var(--gold);font-family:'JetBrains Mono',monospace;">${fmtBs(c.tasaPactada)} Bs/$</span>
+                            <span style="font-size:0.6rem;color:var(--muted);">=</span>
+                            <span style="font-size:0.8rem;font-weight:900;color:#5b21b6;font-family:'JetBrains Mono',monospace;">${fmtBs(c.montoBsTotal)} Bs.</span>
+                        </div>
+                    </div>
+                    <button onclick="divEliminar(${c.id})" title="Eliminar"
+                        style="padding:0.3rem 0.4rem;background:#fff0f0;border:1px solid #f0b0b0;border-radius:6px;cursor:pointer;color:#cc3333;flex-shrink:0;">
+                        <i class="fa-solid fa-trash" style="font-size:0.65rem;"></i>
+                    </button>
+                </div>
+                <div class="flex gap-1.5 px-2.5 pb-2 flex-wrap">
+                    ${divBadgePago(c.estadoPago)}
+                    ${divBadgeRetiro(c.estadoRetiro)}
+                </div>
+                <div class="flex gap-1.5 px-2.5 pb-2.5 flex-wrap" style="border-top:1px solid var(--border);padding-top:0.5rem;">
+                    <button onclick="divTogglePago(${c.id})" class="div-accion-btn" style="${btnPagoColor}">
+                        <i class="fa-solid fa-${btnPagoIcon}" style="font-size:0.6rem;"></i>
+                        ${btnPagoLabel}
+                    </button>
+                    <button onclick="divToggleRetiro(${c.id})" class="div-accion-btn" style="${btnRetColor}">
+                        <i class="fa-solid fa-${btnRetIcon}" style="font-size:0.6rem;"></i>
+                        ${btnRetLabel}
+                    </button>
+                </div>
+            </div>`;
+        }).join('');
+
+        const pendPago   = grupo.items.filter(c => c.estadoPago   === 'pendiente').length;
+        const pendRetiro = grupo.items.filter(c => c.estadoRetiro === 'pendiente').length;
+
+        const badgesPendHtml = [
+            pendPago   > 0 ? `<span class="badge-debo">${pendPago} pago${pendPago>1?'s':''} pend.</span>`    : '',
+            pendRetiro > 0 ? `<span class="badge-pendiente-ret">${pendRetiro} por buscar</span>` : ''
+        ].filter(Boolean).join(' ');
+
+        const div = document.createElement('div');
+        div.className = 'card overflow-hidden';
+        div.innerHTML = `
+            <div class="folder-header flex justify-between items-center gap-2"
+                 onclick="divToggleCarpeta('${carpetaId}')"
+                 style="background:linear-gradient(90deg,#f5f0ff,#ede9fe);border-color:#c4b5fd;">
+                <span class="sec-label flex items-center gap-2" style="color:#5b21b6;">
+                    <i id="ico-${carpetaId}" class="fa-solid fa-folder text-sm" style="color:#a855f7;"></i>
+                    <span>${grupo.nombre}</span>
+                </span>
+                <div class="flex items-center gap-1.5 flex-wrap justify-end">
+                    ${badgesPendHtml}
+                    <span style="font-size:0.6rem;background:#ede9fe;color:#5b21b6;border:1px solid #c4b5fd;border-radius:99px;padding:0.15rem 0.5rem;font-weight:800;font-family:'JetBrains Mono',monospace;">
+                        ${grupo.items.length} compra${grupo.items.length>1?'s':''}
+                    </span>
+                    <span style="font-size:0.6rem;background:#f0fdf4;color:#15803d;border:1px solid #86efac;border-radius:99px;padding:0.15rem 0.5rem;font-weight:900;font-family:'JetBrains Mono',monospace;">
+                        $${fmtComa(grupo.totalUsd)}
+                    </span>
+                </div>
+            </div>
+            <div id="${carpetaId}" class="hidden folder-body p-2 space-y-1.5">
+                ${itemsHtml}
+            </div>`;
+        contenedor.appendChild(div);
+    });
+
+    divActualizarKPIs();
+}
+
+// ── Toggle carpeta cambista ──
+function divToggleCarpeta(id) {
+    const el  = document.getElementById(id);
+    const ico = document.getElementById('ico-' + id);
+    if (!el) return;
+    el.classList.toggle('hidden');
+    if (ico) {
+        ico.className = el.classList.contains('hidden')
+            ? 'fa-solid fa-folder text-sm'
+            : 'fa-solid fa-folder-open text-sm';
+        ico.style.color = el.classList.contains('hidden') ? '#a855f7' : '#7c3aed';
+    }
+}
+
+// ── Inicializar módulo Divisas ──
+(function initDivisas() {
+    divRenderHistorial();
+    divActualizarKPIs();
+})();
+</script>
+</body>
+</html>
